@@ -1,0 +1,8 @@
+name = "mlb-scores-website"
+compatibility_date = "2024-01-01"
+
+[env.production]
+# Production environment settings
+
+[env.preview]
+# Preview environment settings
