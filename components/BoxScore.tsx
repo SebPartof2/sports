@@ -1,6 +1,7 @@
 'use client'
 
 import { Game, PlayerStats, PitcherStats, TeamStats } from '@/lib/api'
+import { getTeamLogo, getTeamAbbreviation } from '@/lib/logos'
 
 interface BoxScoreProps {
   game: Game
@@ -68,7 +69,17 @@ export default function BoxScore({ game }: BoxScoreProps) {
               </thead>
               <tbody>
                 <tr className="border-b">
-                  <td className="py-2 px-3 font-medium">{game.awayTeam}</td>
+                  <td className="py-2 px-3 font-medium flex items-center space-x-2">
+                    <img 
+                      src={getTeamLogo(game.awayTeam)} 
+                      alt={`${game.awayTeam} logo`}
+                      className="w-5 h-5 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                      }}
+                    />
+                    <span>{getTeamAbbreviation(game.awayTeam)}</span>
+                  </td>
                   {game.lineScore.innings.map((inning, index) => (
                     <td key={index} className="text-center py-2 px-2">
                       {inning.away ?? '-'}
@@ -85,7 +96,17 @@ export default function BoxScore({ game }: BoxScoreProps) {
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-2 px-3 font-medium">{game.homeTeam}</td>
+                  <td className="py-2 px-3 font-medium flex items-center space-x-2">
+                    <img 
+                      src={getTeamLogo(game.homeTeam)} 
+                      alt={`${game.homeTeam} logo`}
+                      className="w-5 h-5 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                      }}
+                    />
+                    <span>{getTeamAbbreviation(game.homeTeam)}</span>
+                  </td>
                   {game.lineScore.innings.map((inning, index) => (
                     <td key={index} className="text-center py-2 px-2">
                       {inning.home ?? '-'}
@@ -142,8 +163,21 @@ function TeamBoxScore({ team, isAway, gameStatus }: { team: TeamStats; isAway: b
   return (
     <div className="bg-white border rounded-lg">
       <div className={`px-4 py-3 ${isAway ? 'bg-gray-100' : 'bg-blue-100'} rounded-t-lg`}>
-        <h3 className="font-semibold text-lg">{team.teamName}</h3>
-        <div className="text-sm text-gray-600 mt-1">
+        <div className="flex items-center space-x-3">
+          <img 
+            src={getTeamLogo(team.teamName)} 
+            alt={`${team.teamName} logo`}
+            className="w-8 h-8 object-contain"
+            onError={(e) => {
+              e.currentTarget.src = '/logos/mlb/MLB.png'
+            }}
+          />
+          <div>
+            <h3 className="font-semibold text-lg">{getTeamAbbreviation(team.teamName)}</h3>
+            <div className="text-sm text-gray-600">{team.teamName}</div>
+          </div>
+        </div>
+        <div className="text-sm text-gray-600 mt-2">
           Runs: {team.teamTotals.runs} | Hits: {team.teamTotals.hits} | 
           Errors: {team.teamTotals.errors} | LOB: {team.teamTotals.leftOnBase}
         </div>
@@ -193,50 +227,56 @@ function TeamBoxScore({ team, isAway, gameStatus }: { team: TeamStats; isAway: b
         <h4 className="font-semibold mb-3">
           {gameStatus === 'scheduled' ? 'Probable Pitchers' : 'Pitching'}
         </h4>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="text-left border-b">
-                <th className="py-1">Pitcher</th>
-                <th className="py-1 text-center">IP</th>
-                <th className="py-1 text-center">H</th>
-                <th className="py-1 text-center">R</th>
-                <th className="py-1 text-center">ER</th>
-                <th className="py-1 text-center">BB</th>
-                <th className="py-1 text-center">SO</th>
-                <th className="py-1 text-center">HR</th>
-                <th className="py-1 text-center">P-S</th>
-                <th className="py-1 text-center">ERA</th>
-              </tr>
-            </thead>
-            <tbody>
-              {team.pitchers.map((pitcher, index) => (
-                <tr 
-                  key={pitcher.id} 
-                  className={`${index % 2 === 0 ? 'bg-gray-50' : ''} ${
-                    pitcher.isCurrentPitcher ? 'bg-green-100 font-semibold' : ''
-                  }`}
-                >
-                  <td className="py-1 font-medium">
-                    {pitcher.name}
-                    {pitcher.isCurrentPitcher && (
-                      <span className="ml-1 text-green-600 text-xs">●</span>
-                    )}
-                  </td>
-                  <td className="py-1 text-center">{pitcher.inningsPitched}</td>
-                  <td className="py-1 text-center">{pitcher.hits}</td>
-                  <td className="py-1 text-center">{pitcher.runs}</td>
-                  <td className="py-1 text-center">{pitcher.earnedRuns}</td>
-                  <td className="py-1 text-center">{pitcher.baseOnBalls}</td>
-                  <td className="py-1 text-center">{pitcher.strikeOuts}</td>
-                  <td className="py-1 text-center">{pitcher.homeRuns}</td>
-                  <td className="py-1 text-center">{pitcher.pitches}-{pitcher.strikes}</td>
-                  <td className="py-1 text-center">{pitcher.era}</td>
+        {team.pitchers.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left border-b">
+                  <th className="py-1">Pitcher</th>
+                  <th className="py-1 text-center">IP</th>
+                  <th className="py-1 text-center">H</th>
+                  <th className="py-1 text-center">R</th>
+                  <th className="py-1 text-center">ER</th>
+                  <th className="py-1 text-center">BB</th>
+                  <th className="py-1 text-center">SO</th>
+                  <th className="py-1 text-center">HR</th>
+                  <th className="py-1 text-center">P-S</th>
+                  <th className="py-1 text-center">ERA</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {team.pitchers.map((pitcher, index) => (
+                  <tr 
+                    key={pitcher.id} 
+                    className={`${index % 2 === 0 ? 'bg-gray-50' : ''} ${
+                      pitcher.isCurrentPitcher ? 'bg-green-100 font-semibold' : ''
+                    }`}
+                  >
+                    <td className="py-1 font-medium">
+                      {pitcher.name}
+                      {pitcher.isCurrentPitcher && (
+                        <span className="ml-1 text-green-600 text-xs">●</span>
+                      )}
+                    </td>
+                    <td className="py-1 text-center">{pitcher.inningsPitched}</td>
+                    <td className="py-1 text-center">{pitcher.hits}</td>
+                    <td className="py-1 text-center">{pitcher.runs}</td>
+                    <td className="py-1 text-center">{pitcher.earnedRuns}</td>
+                    <td className="py-1 text-center">{pitcher.baseOnBalls}</td>
+                    <td className="py-1 text-center">{pitcher.strikeOuts}</td>
+                    <td className="py-1 text-center">{pitcher.homeRuns}</td>
+                    <td className="py-1 text-center">{pitcher.pitches}-{pitcher.strikes}</td>
+                    <td className="py-1 text-center">{pitcher.era}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-4 text-gray-500">
+            {gameStatus === 'scheduled' ? 'Probable pitchers not yet announced' : 'No pitching data available'}
+          </div>
+        )}
       </div>
     </div>
   )

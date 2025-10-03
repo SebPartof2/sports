@@ -1,9 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, Clock, Trophy, RefreshCw, X, MapPin, Thermometer, Wind, Users, TrendingUp, Activity, BarChart3 } from 'lucide-react'
-import { fetchTodaysGames, fetchGameDetails, type Game } from '@/lib/api'
+import { Calendar, Clock, Trophy, RefreshCw, X, MapPin, Thermometer, Wind, Users, TrendingUp, Activity, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
+import { fetchTodaysGames, fetchGamesByDate, fetchGameDetails, type Game } from '@/lib/api'
+import { getTeamLogo, getTeamAbbreviation } from '@/lib/logos'
+import { getLeagueConfig, DEFAULT_LEAGUE } from '@/lib/config'
 import BoxScore from '@/components/BoxScore'
+
+// Utility function to get local date as YYYY-MM-DD string
+function getLocalDateString(date: Date = new Date()): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 function GameCard({ game, onClick }: { game: Game; onClick: () => void }) {
   const formatTime = (timeString: string) => {
@@ -39,15 +49,47 @@ function GameCard({ game, onClick }: { game: Game; onClick: () => void }) {
         </div>
       </div>
       
-      <div className="space-y-3">
+      <div className="space-y-4">
+        {/* Away Team */}
         <div className="flex justify-between items-center">
-          <span className="font-semibold text-lg">{game.awayTeam}</span>
+          <div className="flex items-center space-x-3">
+            <img 
+              src={getTeamLogo(game.awayTeam)} 
+              alt={`${game.awayTeam} logo`}
+              className="w-8 h-8 object-contain"
+              onError={(e) => {
+                e.currentTarget.src = '/logos/mlb/MLB.png'
+              }}
+            />
+            <div>
+              <span className="font-semibold text-lg">{getTeamAbbreviation(game.awayTeam)}</span>
+              <div className="text-sm text-gray-600">{game.awayTeam}</div>
+            </div>
+          </div>
           {game.awayScore !== undefined && (
             <span className="text-2xl font-bold">{game.awayScore}</span>
           )}
         </div>
+        
+        {/* VS Indicator */}
+        <div className="text-center text-gray-400 text-sm font-medium">@</div>
+        
+        {/* Home Team */}
         <div className="flex justify-between items-center">
-          <span className="font-semibold text-lg">{game.homeTeam}</span>
+          <div className="flex items-center space-x-3">
+            <img 
+              src={getTeamLogo(game.homeTeam)} 
+              alt={`${game.homeTeam} logo`}
+              className="w-8 h-8 object-contain"
+              onError={(e) => {
+                e.currentTarget.src = '/logos/mlb/MLB.png'
+              }}
+            />
+            <div>
+              <span className="font-semibold text-lg">{getTeamAbbreviation(game.homeTeam)}</span>
+              <div className="text-sm text-gray-600">{game.homeTeam}</div>
+            </div>
+          </div>
           {game.homeScore !== undefined && (
             <span className="text-2xl font-bold">{game.homeScore}</span>
           )}
@@ -105,8 +147,29 @@ function GameDetailModal({
         {/* Header */}
         <div className="bg-mlb-blue text-white p-6 rounded-t-xl">
           <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">
+            <div className="flex-1">
+              <div className="flex items-center space-x-4 mb-3">
+                <img 
+                  src={getTeamLogo(displayGame.awayTeam)} 
+                  alt={`${displayGame.awayTeam} logo`}
+                  className="w-10 h-10 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                  }}
+                />
+                <span className="text-xl font-bold">{getTeamAbbreviation(displayGame.awayTeam)}</span>
+                <span className="text-blue-200">@</span>
+                <span className="text-xl font-bold">{getTeamAbbreviation(displayGame.homeTeam)}</span>
+                <img 
+                  src={getTeamLogo(displayGame.homeTeam)} 
+                  alt={`${displayGame.homeTeam} logo`}
+                  className="w-10 h-10 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                  }}
+                />
+              </div>
+              <h2 className="text-lg font-medium mb-2 text-blue-100">
                 {displayGame.awayTeam} @ {displayGame.homeTeam}
               </h2>
               <div className="flex items-center space-x-4 text-sm">
@@ -268,7 +331,20 @@ function OverviewTab({ game }: { game: Game }) {
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="grid grid-cols-2 gap-8">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">{game.awayTeam}</h3>
+              <div className="flex items-center justify-center space-x-3 mb-3">
+                <img 
+                  src={getTeamLogo(game.awayTeam)} 
+                  alt={`${game.awayTeam} logo`}
+                  className="w-12 h-12 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                  }}
+                />
+                <div>
+                  <h3 className="text-lg font-semibold">{getTeamAbbreviation(game.awayTeam)}</h3>
+                  <div className="text-sm text-gray-600">{game.awayTeam}</div>
+                </div>
+              </div>
               {game.awayRecord && (
                 <p className="text-sm text-gray-600 mb-2">({game.awayRecord})</p>
               )}
@@ -279,7 +355,20 @@ function OverviewTab({ game }: { game: Game }) {
               )}
             </div>
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">{game.homeTeam}</h3>
+              <div className="flex items-center justify-center space-x-3 mb-3">
+                <img 
+                  src={getTeamLogo(game.homeTeam)} 
+                  alt={`${game.homeTeam} logo`}
+                  className="w-12 h-12 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                  }}
+                />
+                <div>
+                  <h3 className="text-lg font-semibold">{getTeamAbbreviation(game.homeTeam)}</h3>
+                  <div className="text-sm text-gray-600">{game.homeTeam}</div>
+                </div>
+              </div>
               {game.homeRecord && (
                 <p className="text-sm text-gray-600 mb-2">({game.homeRecord})</p>
               )}
@@ -311,7 +400,17 @@ function OverviewTab({ game }: { game: Game }) {
               </thead>
               <tbody>
                 <tr className="border-b">
-                  <td className="py-3 px-4 font-medium">{game.awayTeam}</td>
+                  <td className="py-3 px-4 font-medium flex items-center space-x-2">
+                    <img 
+                      src={getTeamLogo(game.awayTeam)} 
+                      alt={`${game.awayTeam} logo`}
+                      className="w-6 h-6 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                      }}
+                    />
+                    <span>{getTeamAbbreviation(game.awayTeam)}</span>
+                  </td>
                   {game.lineScore.innings.map((inning, i) => (
                     <td key={i} className="text-center px-3 py-3">{inning.away ?? '-'}</td>
                   ))}
@@ -320,7 +419,17 @@ function OverviewTab({ game }: { game: Game }) {
                   <td className="text-center px-3 py-3">{game.lineScore.totals.errors.away ?? 0}</td>
                 </tr>
                 <tr>
-                  <td className="py-3 px-4 font-medium">{game.homeTeam}</td>
+                  <td className="py-3 px-4 font-medium flex items-center space-x-2">
+                    <img 
+                      src={getTeamLogo(game.homeTeam)} 
+                      alt={`${game.homeTeam} logo`}
+                      className="w-6 h-6 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                      }}
+                    />
+                    <span>{getTeamAbbreviation(game.homeTeam)}</span>
+                  </td>
                   {game.lineScore.innings.map((inning, i) => (
                     <td key={i} className="text-center px-3 py-3">{inning.home ?? '-'}</td>
                   ))}
@@ -449,6 +558,11 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loadingDetails, setLoadingDetails] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'boxscore' | 'plays'>('overview')
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    // Get today's date in local timezone
+    return getLocalDateString()
+  })
+  const [selectedLeague] = useState<string>(DEFAULT_LEAGUE)
 
   const openGameDetail = async (game: Game) => {
     setSelectedGame(game)
@@ -476,12 +590,39 @@ export default function Home() {
     setActiveTab('overview')
   }
 
+  // Date navigation functions
+  const goToPreviousDay = () => {
+    const prevDate = new Date(selectedDate)
+    prevDate.setDate(prevDate.getDate() - 1)
+    setSelectedDate(prevDate.toISOString().split('T')[0])
+  }
+
+  const goToNextDay = () => {
+    const nextDate = new Date(selectedDate)
+    nextDate.setDate(nextDate.getDate() + 1)
+    setSelectedDate(nextDate.toISOString().split('T')[0])
+  }
+
+  const goToToday = () => {
+    // Get today's date in local timezone
+    setSelectedDate(getLocalDateString())
+  }
+
   // Fetch games from API
   const fetchGames = async () => {
     setLoading(true)
     try {
-      console.log('React: Starting to fetch games...')
-      const fetchedGames = await fetchTodaysGames()
+      console.log('React: Starting to fetch games for date:', selectedDate, 'league:', selectedLeague)
+      let fetchedGames: Game[]
+      
+      if (selectedLeague === 'mlb') {
+        fetchedGames = await fetchGamesByDate(selectedDate)
+      } else {
+        // For future leagues, show message that they're not implemented yet
+        console.log(`${selectedLeague.toUpperCase()} API not implemented yet`)
+        fetchedGames = []
+      }
+      
       console.log('React: Received games:', fetchedGames)
       setGames(fetchedGames)
       setLastUpdated(new Date())
@@ -494,12 +635,11 @@ export default function Home() {
   }
 
   useEffect(() => {
-    console.log('React: Component mounted, fetching games...')
+    console.log('React: Fetching games for date:', selectedDate, 'league:', selectedLeague)
     fetchGames()
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchGames, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  }, [selectedDate, selectedLeague])
+
+  // Manual refresh only - no auto-refresh
 
   console.log('React: Current games state:', games)
   console.log('React: Games length:', games.length)
@@ -519,9 +659,55 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-3">
-              <Trophy className="w-8 h-8" />
-              <h1 className="text-3xl font-bold">MLB Live Stats</h1>
+              <img 
+                src={getLeagueConfig(selectedLeague)?.defaultLogo || "/logos/mlb/MLB.png"} 
+                alt={`${selectedLeague.toUpperCase()} Logo`}
+                className="w-8 h-8 object-contain"
+              />
+              <h1 className="text-3xl font-bold">
+                {getLeagueConfig(selectedLeague)?.displayName || 'Sports'} Live Stats
+              </h1>
             </div>
+            
+            {/* Date Navigation */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 bg-white/10 rounded-lg px-4 py-2">
+                <button
+                  onClick={goToPreviousDay}
+                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  title="Previous day"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4" />
+                  <span className="font-medium min-w-[120px] text-center">
+                    {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    })}
+                  </span>
+                </div>
+                
+                <button
+                  onClick={goToNextDay}
+                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  title="Next day"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <button
+                onClick={goToToday}
+                className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-sm transition-colors"
+              >
+                Today
+              </button>
+            </div>
+            
             <button
               onClick={fetchGames}
               disabled={loading}
