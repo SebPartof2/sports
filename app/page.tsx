@@ -805,7 +805,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2025 MLB Live Stats Website. Built with Next.js and Tailwind CSS.</p>
+          <p>&copy; 2025 Sebastian Kang. Built with Next.js and Tailwind CSS.</p>
           <p className="text-gray-400 mt-2">Real-time box scores and live stats</p>
         </div>
       </footer>
