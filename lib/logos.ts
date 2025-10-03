@@ -4,7 +4,7 @@ import { getLeagueConfig, DEFAULT_LEAGUE } from './config'
 export function getTeamLogo(teamName: string, leagueId: string = DEFAULT_LEAGUE): string {
   const leagueConfig = getLeagueConfig(leagueId)
   if (!leagueConfig) {
-    return '/logos/mlb/MLB.png' // Fallback
+    return '/logos/mlb/MLB.png' // Fallback for unknown league
   }
 
   // Normalize team name to match logo file names
@@ -20,6 +20,8 @@ export function getTeamLogo(teamName: string, leagueId: string = DEFAULT_LEAGUE)
 export function getTeamAbbreviation(teamName: string, leagueId: string = DEFAULT_LEAGUE): string {
   if (leagueId === 'mlb') {
     return getMLBAbbreviation(teamName)
+  } else if (leagueId === 'nfl') {
+    return getNFLAbbreviation(teamName)
   }
   // Add other league abbreviation functions here
   return teamName.substring(0, 3).toUpperCase()
@@ -28,6 +30,8 @@ export function getTeamAbbreviation(teamName: string, leagueId: string = DEFAULT
 function normalizeTeamName(teamName: string, leagueId: string): string {
   if (leagueId === 'mlb') {
     return normalizeMLBTeamName(teamName)
+  } else if (leagueId === 'nfl') {
+    return normalizeNFLTeamName(teamName)
   }
   // Add other league normalization functions here
   return ''
@@ -103,6 +107,85 @@ function getMLBAbbreviation(teamName: string): string {
     'Baltimore Orioles': 'BAL',
     'Tampa Bay Rays': 'TB',
     'Toronto Blue Jays': 'TOR'
+  }
+  
+  return abbreviationMap[teamName] || teamName.substring(0, 3).toUpperCase()
+}
+
+function normalizeNFLTeamName(teamName: string): string {
+  // Convert NFL team names to logo file naming convention
+  const nameMap: { [key: string]: string } = {
+    'Arizona Cardinals': 'ARI_CAR',
+    'Atlanta Falcons': 'ATL_FAL',
+    'Baltimore Ravens': 'BAL_RAV',
+    'Buffalo Bills': 'BUF_BIL',
+    'Carolina Panthers': 'CAR_PAN',
+    'Chicago Bears': 'CHI_BEA',
+    'Cincinnati Bengals': 'CIN_BEN',
+    'Cleveland Browns': 'CLE_BRO',
+    'Dallas Cowboys': 'DAL_COW',
+    'Denver Broncos': 'DEN_BRO',
+    'Detroit Lions': 'DET_LIO',
+    'Green Bay Packers': 'GB_PAC',
+    'Houston Texans': 'HOU_TEX',
+    'Indianapolis Colts': 'IND_COL',
+    'Jacksonville Jaguars': 'JAX_JAG',
+    'Kansas City Chiefs': 'KC_CHI',
+    'Las Vegas Raiders': 'LV_RAI',
+    'Los Angeles Chargers': 'LAC_CHA',
+    'Los Angeles Rams': 'LAR_RAM',
+    'Miami Dolphins': 'MIA_DOL',
+    'Minnesota Vikings': 'MIN_VIK',
+    'New England Patriots': 'NE_PAT',
+    'New Orleans Saints': 'NO_SAI',
+    'New York Giants': 'NYG_GIA',
+    'New York Jets': 'NYJ_JET',
+    'Philadelphia Eagles': 'PHI_EAG',
+    'Pittsburgh Steelers': 'PIT_STE',
+    'San Francisco 49ers': 'SF_49E',
+    'Seattle Seahawks': 'SEA_SEA',
+    'Tampa Bay Buccaneers': 'TB_BUC',
+    'Tennessee Titans': 'TEN_TIT',
+    'Washington Commanders': 'WAS_COM'
+  }
+  
+  return nameMap[teamName] || ''
+}
+
+function getNFLAbbreviation(teamName: string): string {
+  const abbreviationMap: { [key: string]: string } = {
+    'Arizona Cardinals': 'ARI',
+    'Atlanta Falcons': 'ATL',
+    'Baltimore Ravens': 'BAL',
+    'Buffalo Bills': 'BUF',
+    'Carolina Panthers': 'CAR',
+    'Chicago Bears': 'CHI',
+    'Cincinnati Bengals': 'CIN',
+    'Cleveland Browns': 'CLE',
+    'Dallas Cowboys': 'DAL',
+    'Denver Broncos': 'DEN',
+    'Detroit Lions': 'DET',
+    'Green Bay Packers': 'GB',
+    'Houston Texans': 'HOU',
+    'Indianapolis Colts': 'IND',
+    'Jacksonville Jaguars': 'JAX',
+    'Kansas City Chiefs': 'KC',
+    'Las Vegas Raiders': 'LV',
+    'Los Angeles Chargers': 'LAC',
+    'Los Angeles Rams': 'LAR',
+    'Miami Dolphins': 'MIA',
+    'Minnesota Vikings': 'MIN',
+    'New England Patriots': 'NE',
+    'New Orleans Saints': 'NO',
+    'New York Giants': 'NYG',
+    'New York Jets': 'NYJ',
+    'Philadelphia Eagles': 'PHI',
+    'Pittsburgh Steelers': 'PIT',
+    'San Francisco 49ers': 'SF',
+    'Seattle Seahawks': 'SEA',
+    'Tampa Bay Buccaneers': 'TB',
+    'Tennessee Titans': 'TEN',
+    'Washington Commanders': 'WAS'
   }
   
   return abbreviationMap[teamName] || teamName.substring(0, 3).toUpperCase()

@@ -17,6 +17,7 @@ export default function BoxScore({ game }: BoxScoreProps) {
   }
 
   const { teams } = game.boxScore
+  const isNFL = game.league === 'nfl'
 
   return (
     <div className="p-6 space-y-6">
@@ -28,15 +29,18 @@ export default function BoxScore({ game }: BoxScoreProps) {
               {game.inning || 'Live'}
             </div>
             <div className="text-green-700">
-              {game.liveData.balls !== undefined && (
+              {!isNFL && game.liveData.balls !== undefined && (
                 <span className="mr-4">
                   <span className="font-semibold">Count:</span> {game.liveData.balls}-{game.liveData.strikes}
                 </span>
               )}
-              {game.liveData.outs !== undefined && (
+              {!isNFL && game.liveData.outs !== undefined && (
                 <span>
                   <span className="font-semibold">Outs:</span> {game.liveData.outs}
                 </span>
+              )}
+              {isNFL && (
+                <span className="font-semibold">NFL Game Live</span>
               )}
             </div>
           </div>
@@ -48,10 +52,10 @@ export default function BoxScore({ game }: BoxScoreProps) {
         </div>
       )}
 
-      {/* Line Score */}
+      {/* Box Score */}
       {game.lineScore && (
         <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-lg font-semibold mb-3">Line Score</h3>
+          <h3 className="text-lg font-semibold mb-3">{isNFL ? 'Quarter Scores' : 'Box Score'}</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -59,68 +63,90 @@ export default function BoxScore({ game }: BoxScoreProps) {
                   <th className="text-left py-2 px-3">Team</th>
                   {game.lineScore.innings.map((_, index) => (
                     <th key={index} className="text-center py-2 px-2 w-8">
-                      {index + 1}
+                      {isNFL ? (index === 0 ? '1st' : index === 1 ? '2nd' : index === 2 ? '3rd' : index === 3 ? '4th' : `OT${index - 3}`) : (index + 1)}
                     </th>
                   ))}
-                  <th className="text-center py-2 px-3 font-semibold border-l-2">R</th>
-                  <th className="text-center py-2 px-3 font-semibold">H</th>
-                  <th className="text-center py-2 px-3 font-semibold">E</th>
+                  {isNFL ? (
+                    <th className="text-center py-2 px-3 font-semibold border-l-2">PTS</th>
+                  ) : (
+                    <>
+                      <th className="text-center py-2 px-3 font-semibold border-l-2">R</th>
+                      <th className="text-center py-2 px-3 font-semibold">H</th>
+                      <th className="text-center py-2 px-3 font-semibold">E</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b">
                   <td className="py-2 px-3 font-medium flex items-center space-x-2">
                     <img 
-                      src={getTeamLogo(game.awayTeam)} 
+                      src={getTeamLogo(game.awayTeam, game.league)} 
                       alt={`${game.awayTeam} logo`}
                       className="w-5 h-5 object-contain"
                       onError={(e) => {
-                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                        e.currentTarget.src = isNFL ? '/logos/nfl/NFL.png' : '/logos/mlb/MLB.png'
                       }}
                     />
-                    <span>{getTeamAbbreviation(game.awayTeam)}</span>
+                    <span>{getTeamAbbreviation(game.awayTeam, game.league)}</span>
                   </td>
                   {game.lineScore.innings.map((inning, index) => (
                     <td key={index} className="text-center py-2 px-2">
                       {inning.away ?? '-'}
                     </td>
                   ))}
-                  <td className="text-center py-2 px-3 font-bold border-l-2">
-                    {game.lineScore.totals.runs.away}
-                  </td>
-                  <td className="text-center py-2 px-3">
-                    {game.lineScore.totals.hits.away}
-                  </td>
-                  <td className="text-center py-2 px-3">
-                    {game.lineScore.totals.errors.away}
-                  </td>
+                  {isNFL ? (
+                    <td className="text-center py-2 px-3 font-bold border-l-2">
+                      {game.lineScore.totals.runs.away}
+                    </td>
+                  ) : (
+                    <>
+                      <td className="text-center py-2 px-3 font-bold border-l-2">
+                        {game.lineScore.totals.runs.away}
+                      </td>
+                      <td className="text-center py-2 px-3">
+                        {game.lineScore.totals.hits.away}
+                      </td>
+                      <td className="text-center py-2 px-3">
+                        {game.lineScore.totals.errors.away}
+                      </td>
+                    </>
+                  )}
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-medium flex items-center space-x-2">
                     <img 
-                      src={getTeamLogo(game.homeTeam)} 
+                      src={getTeamLogo(game.homeTeam, game.league)} 
                       alt={`${game.homeTeam} logo`}
                       className="w-5 h-5 object-contain"
                       onError={(e) => {
-                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                        e.currentTarget.src = isNFL ? '/logos/nfl/NFL.png' : '/logos/mlb/MLB.png'
                       }}
                     />
-                    <span>{getTeamAbbreviation(game.homeTeam)}</span>
+                    <span>{getTeamAbbreviation(game.homeTeam, game.league)}</span>
                   </td>
                   {game.lineScore.innings.map((inning, index) => (
                     <td key={index} className="text-center py-2 px-2">
                       {inning.home ?? '-'}
                     </td>
                   ))}
-                  <td className="text-center py-2 px-3 font-bold border-l-2">
-                    {game.lineScore.totals.runs.home}
-                  </td>
-                  <td className="text-center py-2 px-3">
-                    {game.lineScore.totals.hits.home}
-                  </td>
-                  <td className="text-center py-2 px-3">
-                    {game.lineScore.totals.errors.home}
-                  </td>
+                  {isNFL ? (
+                    <td className="text-center py-2 px-3 font-bold border-l-2">
+                      {game.lineScore.totals.runs.home}
+                    </td>
+                  ) : (
+                    <>
+                      <td className="text-center py-2 px-3 font-bold border-l-2">
+                        {game.lineScore.totals.runs.home}
+                      </td>
+                      <td className="text-center py-2 px-3">
+                        {game.lineScore.totals.hits.home}
+                      </td>
+                      <td className="text-center py-2 px-3">
+                        {game.lineScore.totals.errors.home}
+                      </td>
+                    </>
+                  )}
                 </tr>
               </tbody>
             </table>
@@ -130,8 +156,8 @@ export default function BoxScore({ game }: BoxScoreProps) {
 
       {/* Team Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TeamBoxScore team={teams.away} isAway={true} gameStatus={game.status} />
-        <TeamBoxScore team={teams.home} isAway={false} gameStatus={game.status} />
+        <TeamBoxScore team={teams.away} isAway={true} gameStatus={game.status} isNFL={isNFL} />
+        <TeamBoxScore team={teams.home} isAway={false} gameStatus={game.status} isNFL={isNFL} />
       </div>
 
       {/* Recent Plays */}
@@ -159,35 +185,46 @@ export default function BoxScore({ game }: BoxScoreProps) {
   )
 }
 
-function TeamBoxScore({ team, isAway, gameStatus }: { team: TeamStats; isAway: boolean; gameStatus: 'scheduled' | 'live' | 'final' }) {
+function TeamBoxScore({ team, isAway, gameStatus, isNFL }: { team: TeamStats; isAway: boolean; gameStatus: 'scheduled' | 'live' | 'final'; isNFL: boolean }) {
   return (
     <div className="bg-white border rounded-lg">
       <div className={`px-4 py-3 ${isAway ? 'bg-gray-100' : 'bg-blue-100'} rounded-t-lg`}>
         <div className="flex items-center space-x-3">
           <img 
-            src={getTeamLogo(team.teamName)} 
+            src={getTeamLogo(team.teamName, isNFL ? 'nfl' : 'mlb')} 
             alt={`${team.teamName} logo`}
             className="w-8 h-8 object-contain"
             onError={(e) => {
-              e.currentTarget.src = '/logos/mlb/MLB.png'
+              e.currentTarget.src = isNFL ? '/logos/nfl/NFL.png' : '/logos/mlb/MLB.png'
             }}
           />
           <div>
-            <h3 className="font-semibold text-lg">{getTeamAbbreviation(team.teamName)}</h3>
+            <h3 className="font-semibold text-lg">{getTeamAbbreviation(team.teamName, isNFL ? 'nfl' : 'mlb')}</h3>
             <div className="text-sm text-gray-600">{team.teamName}</div>
           </div>
         </div>
         <div className="text-sm text-gray-600 mt-2">
-          Runs: {team.teamTotals.runs} | Hits: {team.teamTotals.hits} | 
-          Errors: {team.teamTotals.errors} | LOB: {team.teamTotals.leftOnBase}
+          {isNFL && team.nflStats ? (
+            <>
+              Points: {team.teamTotals.runs} | Total Yards: {team.nflStats.totalYards} | 
+              Passing: {team.nflStats.passingYards} | Rushing: {team.nflStats.rushingYards} | 
+              Turnovers: {team.nflStats.turnovers} | Penalties: {team.nflStats.penalties}
+            </>
+          ) : (
+            <>
+              Runs: {team.teamTotals.runs} | Hits: {team.teamTotals.hits} | 
+              Errors: {team.teamTotals.errors} | LOB: {team.teamTotals.leftOnBase}
+            </>
+          )}
         </div>
       </div>
 
-      {/* Batting Stats */}
-      <div className="p-4">
-        <h4 className="font-semibold mb-3">
-          {gameStatus === 'scheduled' ? 'Probable Lineup' : 'Batting'}
-        </h4>
+      {/* Batting Stats - MLB Only */}
+      {!isNFL && (
+        <div className="p-4">
+          <h4 className="font-semibold mb-3">
+            {gameStatus === 'scheduled' ? 'Probable Lineup' : 'Batting'}
+          </h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
@@ -221,9 +258,11 @@ function TeamBoxScore({ team, isAway, gameStatus }: { team: TeamStats; isAway: b
           </table>
         </div>
       </div>
+      )}
 
-      {/* Pitching Stats */}
-      <div className="p-4 border-t">
+      {/* Pitching Stats - MLB Only */}
+      {!isNFL && (
+        <div className="p-4 border-t">
         <h4 className="font-semibold mb-3">
           {gameStatus === 'scheduled' ? 'Probable Pitchers' : 'Pitching'}
         </h4>
@@ -278,6 +317,44 @@ function TeamBoxScore({ team, isAway, gameStatus }: { team: TeamStats; isAway: b
           </div>
         )}
       </div>
+      )}
+
+      {/* NFL Team Stats */}
+      {isNFL && team.nflStats && (
+        <div className="p-4 border-t">
+          <h4 className="font-semibold mb-3">Team Statistics</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Total Yards</span>
+                <span className="font-semibold">{team.nflStats.totalYards}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Passing Yards</span>
+                <span className="font-semibold">{team.nflStats.passingYards}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Rushing Yards</span>
+                <span className="font-semibold">{team.nflStats.rushingYards}</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Turnovers</span>
+                <span className="font-semibold">{team.nflStats.turnovers}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Penalties</span>
+                <span className="font-semibold">{team.nflStats.penalties}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Time of Possession</span>
+                <span className="font-semibold">{team.nflStats.timeOfPossession || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

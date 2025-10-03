@@ -55,6 +55,7 @@ export interface Game {
     strikes?: number
     outs?: number
   }
+  league?: string
 }
 
 export interface TeamStats {
@@ -66,6 +67,15 @@ export interface TeamStats {
     hits: number
     errors: number
     leftOnBase: number
+  }
+  // NFL-specific stats (optional)
+  nflStats?: {
+    totalYards: number
+    passingYards: number
+    rushingYards: number
+    turnovers: number
+    penalties: number
+    timeOfPossession: string
   }
 }
 
@@ -103,13 +113,23 @@ export interface PitcherStats {
 }
 
 export interface PlayByPlay {
-  inning: number
-  halfInning: string
-  description: string
-  result?: string
+  // Baseball fields
+  inning?: number
+  halfInning?: string
   balls?: number
   strikes?: number
   outs?: number
+  
+  // NFL fields
+  quarter?: number
+  time?: string
+  down?: number
+  distance?: number
+  yardLine?: string
+  
+  // Common fields
+  description: string
+  result?: string
 }
 
 // Example function to fetch today's games

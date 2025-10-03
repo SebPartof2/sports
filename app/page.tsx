@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Calendar, Clock, Trophy, RefreshCw, X, MapPin, Thermometer, Wind, Users, TrendingUp, Activity, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, Trophy, RefreshCw, X, MapPin, Thermometer, Wind, Users, TrendingUp, Activity, BarChart3, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react'
 import { fetchTodaysGames, fetchGamesByDate, fetchGameDetails, type Game } from '@/lib/api'
 import { getTeamLogo, getTeamAbbreviation } from '@/lib/logos'
-import { getLeagueConfig, DEFAULT_LEAGUE } from '@/lib/config'
+import { getLeagueConfig, DEFAULT_LEAGUE, SPORTS_CONFIG } from '@/lib/config'
 import BoxScore from '@/components/BoxScore'
 
 // Utility function to get local date as YYYY-MM-DD string
@@ -15,7 +15,7 @@ function getLocalDateString(date: Date = new Date()): string {
   return `${year}-${month}-${day}`
 }
 
-function GameCard({ game, onClick }: { game: Game; onClick: () => void }) {
+function GameCard({ game, onClick, selectedLeague }: { game: Game; onClick: () => void; selectedLeague: string }) {
   const formatTime = (timeString: string) => {
     return new Date(timeString).toLocaleTimeString('en-US', {
       hour: 'numeric',
@@ -54,15 +54,15 @@ function GameCard({ game, onClick }: { game: Game; onClick: () => void }) {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <img 
-              src={getTeamLogo(game.awayTeam)} 
+              src={getTeamLogo(game.awayTeam, selectedLeague)} 
               alt={`${game.awayTeam} logo`}
               className="w-8 h-8 object-contain"
               onError={(e) => {
-                e.currentTarget.src = '/logos/mlb/MLB.png'
+                e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
               }}
             />
             <div>
-              <span className="font-semibold text-lg">{getTeamAbbreviation(game.awayTeam)}</span>
+              <span className="font-semibold text-lg">{getTeamAbbreviation(game.awayTeam, selectedLeague)}</span>
               <div className="text-sm text-gray-600">{game.awayTeam}</div>
             </div>
           </div>
@@ -78,15 +78,15 @@ function GameCard({ game, onClick }: { game: Game; onClick: () => void }) {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <img 
-              src={getTeamLogo(game.homeTeam)} 
+              src={getTeamLogo(game.homeTeam, selectedLeague)} 
               alt={`${game.homeTeam} logo`}
               className="w-8 h-8 object-contain"
               onError={(e) => {
-                e.currentTarget.src = '/logos/mlb/MLB.png'
+                e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
               }}
             />
             <div>
-              <span className="font-semibold text-lg">{getTeamAbbreviation(game.homeTeam)}</span>
+              <span className="font-semibold text-lg">{getTeamAbbreviation(game.homeTeam, selectedLeague)}</span>
               <div className="text-sm text-gray-600">{game.homeTeam}</div>
             </div>
           </div>
@@ -110,7 +110,8 @@ function GameDetailModal({
   onClose, 
   loadingDetails,
   activeTab,
-  setActiveTab 
+  setActiveTab,
+  selectedLeague
 }: { 
   game: Game | null
   detailedGame: Game | null
@@ -119,6 +120,7 @@ function GameDetailModal({
   loadingDetails: boolean
   activeTab: 'overview' | 'boxscore' | 'plays'
   setActiveTab: (tab: 'overview' | 'boxscore' | 'plays') => void
+  selectedLeague: string
 }) {
   if (!isOpen || !game) return null
 
@@ -150,22 +152,22 @@ function GameDetailModal({
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-3">
                 <img 
-                  src={getTeamLogo(displayGame.awayTeam)} 
+                  src={getTeamLogo(displayGame.awayTeam, selectedLeague)} 
                   alt={`${displayGame.awayTeam} logo`}
                   className="w-10 h-10 object-contain"
                   onError={(e) => {
-                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                    e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
                   }}
                 />
-                <span className="text-xl font-bold">{getTeamAbbreviation(displayGame.awayTeam)}</span>
+                <span className="text-xl font-bold">{getTeamAbbreviation(displayGame.awayTeam, selectedLeague)}</span>
                 <span className="text-blue-200">@</span>
-                <span className="text-xl font-bold">{getTeamAbbreviation(displayGame.homeTeam)}</span>
+                <span className="text-xl font-bold">{getTeamAbbreviation(displayGame.homeTeam, selectedLeague)}</span>
                 <img 
-                  src={getTeamLogo(displayGame.homeTeam)} 
+                  src={getTeamLogo(displayGame.homeTeam, selectedLeague)} 
                   alt={`${displayGame.homeTeam} logo`}
                   className="w-10 h-10 object-contain"
                   onError={(e) => {
-                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                    e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
                   }}
                 />
               </div>
@@ -250,7 +252,7 @@ function GameDetailModal({
           )}
 
           {activeTab === 'overview' && (
-            <OverviewTab game={displayGame} />
+            <OverviewTab game={displayGame} selectedLeague={selectedLeague} />
           )}
 
           {activeTab === 'boxscore' && (
@@ -292,7 +294,7 @@ function GameDetailModal({
   )
 }
 
-function OverviewTab({ game }: { game: Game }) {
+function OverviewTab({ game, selectedLeague }: { game: Game; selectedLeague: string }) {
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -333,15 +335,15 @@ function OverviewTab({ game }: { game: Game }) {
             <div className="text-center">
               <div className="flex items-center justify-center space-x-3 mb-3">
                 <img 
-                  src={getTeamLogo(game.awayTeam)} 
+                  src={getTeamLogo(game.awayTeam, selectedLeague)} 
                   alt={`${game.awayTeam} logo`}
                   className="w-12 h-12 object-contain"
                   onError={(e) => {
-                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                    e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
                   }}
                 />
                 <div>
-                  <h3 className="text-lg font-semibold">{getTeamAbbreviation(game.awayTeam)}</h3>
+                  <h3 className="text-lg font-semibold">{getTeamAbbreviation(game.awayTeam, selectedLeague)}</h3>
                   <div className="text-sm text-gray-600">{game.awayTeam}</div>
                 </div>
               </div>
@@ -357,15 +359,15 @@ function OverviewTab({ game }: { game: Game }) {
             <div className="text-center">
               <div className="flex items-center justify-center space-x-3 mb-3">
                 <img 
-                  src={getTeamLogo(game.homeTeam)} 
+                  src={getTeamLogo(game.homeTeam, selectedLeague)} 
                   alt={`${game.homeTeam} logo`}
                   className="w-12 h-12 object-contain"
                   onError={(e) => {
-                    e.currentTarget.src = '/logos/mlb/MLB.png'
+                    e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
                   }}
                 />
                 <div>
-                  <h3 className="text-lg font-semibold">{getTeamAbbreviation(game.homeTeam)}</h3>
+                  <h3 className="text-lg font-semibold">{getTeamAbbreviation(game.homeTeam, selectedLeague)}</h3>
                   <div className="text-sm text-gray-600">{game.homeTeam}</div>
                 </div>
               </div>
@@ -402,14 +404,14 @@ function OverviewTab({ game }: { game: Game }) {
                 <tr className="border-b">
                   <td className="py-3 px-4 font-medium flex items-center space-x-2">
                     <img 
-                      src={getTeamLogo(game.awayTeam)} 
+                      src={getTeamLogo(game.awayTeam, selectedLeague)} 
                       alt={`${game.awayTeam} logo`}
                       className="w-6 h-6 object-contain"
                       onError={(e) => {
-                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                        e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
                       }}
                     />
-                    <span>{getTeamAbbreviation(game.awayTeam)}</span>
+                    <span>{getTeamAbbreviation(game.awayTeam, selectedLeague)}</span>
                   </td>
                   {game.lineScore.innings.map((inning, i) => (
                     <td key={i} className="text-center px-3 py-3">{inning.away ?? '-'}</td>
@@ -421,14 +423,14 @@ function OverviewTab({ game }: { game: Game }) {
                 <tr>
                   <td className="py-3 px-4 font-medium flex items-center space-x-2">
                     <img 
-                      src={getTeamLogo(game.homeTeam)} 
+                      src={getTeamLogo(game.homeTeam, selectedLeague)} 
                       alt={`${game.homeTeam} logo`}
                       className="w-6 h-6 object-contain"
                       onError={(e) => {
-                        e.currentTarget.src = '/logos/mlb/MLB.png'
+                        e.currentTarget.src = getLeagueConfig(selectedLeague)?.defaultLogo || '/logos/mlb/MLB.png'
                       }}
                     />
-                    <span>{getTeamAbbreviation(game.homeTeam)}</span>
+                    <span>{getTeamAbbreviation(game.homeTeam, selectedLeague)}</span>
                   </td>
                   {game.lineScore.innings.map((inning, i) => (
                     <td key={i} className="text-center px-3 py-3">{inning.home ?? '-'}</td>
@@ -496,6 +498,8 @@ function OverviewTab({ game }: { game: Game }) {
 }
 
 function LivePlaysTab({ game }: { game: Game }) {
+  const isNFL = game.league === 'nfl'
+  
   if (!game.liveData?.plays || game.liveData.plays.length === 0) {
     return (
       <div className="p-6 text-center text-gray-500">
@@ -506,24 +510,42 @@ function LivePlaysTab({ game }: { game: Game }) {
 
   return (
     <div className="p-6">
-      <h3 className="text-lg font-semibold mb-4">Recent Plays</h3>
+      <h3 className="text-lg font-semibold mb-4">
+        {isNFL ? 'Drive Summary' : 'Recent Plays'}
+      </h3>
       <div className="space-y-3">
         {game.liveData.plays.map((play, index) => (
           <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center space-x-3">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-mlb-blue text-white">
-                  {play.halfInning} {play.inning}
-                  {play.inning === 1 ? 'st' : play.inning === 2 ? 'nd' : play.inning === 3 ? 'rd' : 'th'}
-                </span>
-                {play.balls !== undefined && play.strikes !== undefined && (
+                {isNFL ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-nfl-blue text-white">
+                    {play.quarter ? `Q${play.quarter}` : 'Drive'} {play.time || ''}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-mlb-blue text-white">
+                    {play.halfInning} {play.inning}
+                    {play.inning === 1 ? 'st' : play.inning === 2 ? 'nd' : play.inning === 3 ? 'rd' : 'th'}
+                  </span>
+                )}
+                {!isNFL && play.balls !== undefined && play.strikes !== undefined && (
                   <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
                     {play.balls}-{play.strikes}
                   </span>
                 )}
-                {play.outs !== undefined && (
+                {!isNFL && play.outs !== undefined && (
                   <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
                     {play.outs} out{play.outs !== 1 ? 's' : ''}
+                  </span>
+                )}
+                {isNFL && play.down && (
+                  <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {play.down} & {play.distance}
+                  </span>
+                )}
+                {isNFL && play.yardLine && (
+                  <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {play.yardLine}
                   </span>
                 )}
               </div>
@@ -531,7 +553,9 @@ function LivePlaysTab({ game }: { game: Game }) {
             <p className="text-gray-800 leading-relaxed">{play.description}</p>
             {play.result && (
               <div className="mt-3 pt-2 border-t border-gray-100">
-                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
+                  isNFL ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                }`}>
                   {play.result}
                 </span>
               </div>
@@ -559,12 +583,13 @@ export default function Home() {
   const [loadingDetails, setLoadingDetails] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'boxscore' | 'plays'>('overview')
   const [selectedDate, setSelectedDate] = useState<string>(() => {
-    // Get today's date in local timezone
     return getLocalDateString()
   })
-  const [selectedLeague] = useState<string>(DEFAULT_LEAGUE)
+  const [selectedLeague, setSelectedLeague] = useState<string>(DEFAULT_LEAGUE)
+  const [showLeagueDropdown, setShowLeagueDropdown] = useState(false)
 
   const openGameDetail = async (game: Game) => {
+    console.log('Opening game detail for:', game)
     setSelectedGame(game)
     setDetailedGame(null)
     setIsModalOpen(true)
@@ -572,9 +597,23 @@ export default function Home() {
     setActiveTab('overview')
     
     try {
-      const details = await fetchGameDetails(game.id)
+      let details: Game | null = null
+      
+      if (selectedLeague === 'mlb') {
+        console.log('Fetching MLB game details for:', game.id)
+        details = await fetchGameDetails(game.id)
+      } else if (selectedLeague === 'nfl') {
+        console.log('Fetching NFL game details for:', game.id)
+        const nflApi = await import('../lib/nfl-api')
+        details = await nflApi.fetchNFLGameDetails(game.id)
+        console.log('NFL game details result:', details)
+      }
+      
       if (details) {
+        console.log('Setting detailed game:', details)
         setDetailedGame(details)
+      } else {
+        console.log('No details returned, using original game data')
       }
     } catch (error) {
       console.error('Failed to load game details:', error)
@@ -616,7 +655,13 @@ export default function Home() {
       let fetchedGames: Game[]
       
       if (selectedLeague === 'mlb') {
+        console.log('React: Calling MLB API')
         fetchedGames = await fetchGamesByDate(selectedDate)
+      } else if (selectedLeague === 'nfl') {
+        console.log('React: Calling NFL API')
+        const nflApi = await import('../lib/nfl-api')
+        fetchedGames = await nflApi.fetchNFLGamesByDate(selectedDate)
+        console.log('React: NFL API returned:', fetchedGames.length, 'games')
       } else {
         // For future leagues, show message that they're not implemented yet
         console.log(`${selectedLeague.toUpperCase()} API not implemented yet`)
@@ -624,6 +669,7 @@ export default function Home() {
       }
       
       console.log('React: Received games:', fetchedGames)
+      console.log('React: Setting games state to:', fetchedGames)
       setGames(fetchedGames)
       setLastUpdated(new Date())
     } catch (error) {
@@ -658,15 +704,59 @@ export default function Home() {
       <header className="bg-mlb-blue text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <img 
-                src={getLeagueConfig(selectedLeague)?.defaultLogo || "/logos/mlb/MLB.png"} 
-                alt={`${selectedLeague.toUpperCase()} Logo`}
-                className="w-8 h-8 object-contain"
-              />
-              <h1 className="text-3xl font-bold">
-                {getLeagueConfig(selectedLeague)?.displayName || 'Sports'} Live Stats
-              </h1>
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <img 
+                  src={getLeagueConfig(selectedLeague)?.defaultLogo || "/logos/mlb/MLB.png"} 
+                  alt={`${selectedLeague.toUpperCase()} Logo`}
+                  className="w-8 h-8 object-contain"
+                />
+                <h1 className="text-3xl font-bold">
+                  {getLeagueConfig(selectedLeague)?.displayName || 'Sports'} Live Stats
+                </h1>
+              </div>
+              
+              {/* League Selector */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}
+                  className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 px-3 py-2 rounded-lg transition-colors"
+                >
+                  <span className="font-medium">{selectedLeague.toUpperCase()}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                
+                {showLeagueDropdown && (
+                  <div className="absolute top-full mt-2 left-0 bg-white text-gray-900 rounded-lg shadow-lg py-2 min-w-[200px] z-50">
+                    {SPORTS_CONFIG.map(sport => (
+                      <div key={sport.id}>
+                        <div className="px-4 py-2 text-sm font-medium text-gray-500 border-b">
+                          {sport.name}
+                        </div>
+                        {sport.leagues.map(league => (
+                          <button
+                            key={league.id}
+                            onClick={() => {
+                              setSelectedLeague(league.id)
+                              setShowLeagueDropdown(false)
+                            }}
+                            className={`w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center space-x-2 ${
+                              selectedLeague === league.id ? 'bg-blue-50 text-blue-600' : ''
+                            }`}
+                          >
+                            <img 
+                              src={league.defaultLogo} 
+                              alt={league.name}
+                              className="w-5 h-5 object-contain"
+                            />
+                            <span>{league.displayName}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Date Navigation */}
@@ -757,7 +847,7 @@ export default function Home() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {liveGames.map(game => (
-                    <GameCard key={game.id} game={game} onClick={() => openGameDetail(game)} />
+                    <GameCard key={game.id} game={game} onClick={() => openGameDetail(game)} selectedLeague={selectedLeague} />
                   ))}
                 </div>
               </section>
@@ -771,7 +861,7 @@ export default function Home() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {finalGames.map(game => (
-                    <GameCard key={game.id} game={game} onClick={() => openGameDetail(game)} />
+                    <GameCard key={game.id} game={game} onClick={() => openGameDetail(game)} selectedLeague={selectedLeague} />
                   ))}
                 </div>
               </section>
@@ -785,7 +875,7 @@ export default function Home() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {scheduledGames.map(game => (
-                    <GameCard key={game.id} game={game} onClick={() => openGameDetail(game)} />
+                    <GameCard key={game.id} game={game} onClick={() => openGameDetail(game)} selectedLeague={selectedLeague} />
                   ))}
                 </div>
               </section>
@@ -819,6 +909,7 @@ export default function Home() {
         loadingDetails={loadingDetails}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        selectedLeague={selectedLeague}
       />
     </div>
   )
