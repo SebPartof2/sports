@@ -398,29 +398,44 @@ function LivePlaysTab({ game }: { game: Game }) {
   return (
     <div className="p-6">
       <h3 className="text-lg font-semibold mb-4">Recent Plays</h3>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {game.liveData.plays.map((play, index) => (
-          <div key={index} className="bg-white border rounded-lg p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div className="font-medium text-mlb-blue">
-                {play.halfInning} {play.inning}
-                {play.inning === 1 ? 'st' : play.inning === 2 ? 'nd' : play.inning === 3 ? 'rd' : 'th'} Inning
+          <div key={index} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center space-x-3">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-mlb-blue text-white">
+                  {play.halfInning} {play.inning}
+                  {play.inning === 1 ? 'st' : play.inning === 2 ? 'nd' : play.inning === 3 ? 'rd' : 'th'}
+                </span>
+                {play.balls !== undefined && play.strikes !== undefined && (
+                  <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {play.balls}-{play.strikes}
+                  </span>
+                )}
+                {play.outs !== undefined && (
+                  <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
+                    {play.outs} out{play.outs !== 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
-              {play.balls !== undefined && play.strikes !== undefined && (
-                <div className="text-sm text-gray-600">
-                  Count: {play.balls}-{play.strikes} | {play.outs} out{play.outs !== 1 ? 's' : ''}
-                </div>
-              )}
             </div>
-            <p className="text-gray-800">{play.description}</p>
+            <p className="text-gray-800 leading-relaxed">{play.description}</p>
             {play.result && (
-              <div className="mt-2 text-sm text-gray-600">
-                Result: {play.result}
+              <div className="mt-3 pt-2 border-t border-gray-100">
+                <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800">
+                  {play.result}
+                </span>
               </div>
             )}
           </div>
         ))}
       </div>
+      
+      {game.liveData.plays.length === 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>No plays recorded yet</p>
+        </div>
+      )}
     </div>
   )
 }

@@ -109,8 +109,8 @@ export default function BoxScore({ game }: BoxScoreProps) {
 
       {/* Team Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TeamBoxScore team={teams.away} isAway={true} />
-        <TeamBoxScore team={teams.home} isAway={false} />
+        <TeamBoxScore team={teams.away} isAway={true} gameStatus={game.status} />
+        <TeamBoxScore team={teams.home} isAway={false} gameStatus={game.status} />
       </div>
 
       {/* Recent Plays */}
@@ -138,7 +138,7 @@ export default function BoxScore({ game }: BoxScoreProps) {
   )
 }
 
-function TeamBoxScore({ team, isAway }: { team: TeamStats; isAway: boolean }) {
+function TeamBoxScore({ team, isAway, gameStatus }: { team: TeamStats; isAway: boolean; gameStatus: 'scheduled' | 'live' | 'final' }) {
   return (
     <div className="bg-white border rounded-lg">
       <div className={`px-4 py-3 ${isAway ? 'bg-gray-100' : 'bg-blue-100'} rounded-t-lg`}>
@@ -151,7 +151,9 @@ function TeamBoxScore({ team, isAway }: { team: TeamStats; isAway: boolean }) {
 
       {/* Batting Stats */}
       <div className="p-4">
-        <h4 className="font-semibold mb-3">Batting</h4>
+        <h4 className="font-semibold mb-3">
+          {gameStatus === 'scheduled' ? 'Probable Lineup' : 'Batting'}
+        </h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
@@ -188,7 +190,9 @@ function TeamBoxScore({ team, isAway }: { team: TeamStats; isAway: boolean }) {
 
       {/* Pitching Stats */}
       <div className="p-4 border-t">
-        <h4 className="font-semibold mb-3">Pitching</h4>
+        <h4 className="font-semibold mb-3">
+          {gameStatus === 'scheduled' ? 'Probable Pitchers' : 'Pitching'}
+        </h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>

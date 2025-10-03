@@ -277,20 +277,19 @@ function getOrdinal(n: number): string {
 }
 
 function mapGameStatus(statusCode: string): 'scheduled' | 'live' | 'final' {
-  switch (statusCode) {
-    case 'S':
-    case 'P':
-      return 'scheduled'
-    case 'I':
-    case 'MA':
-      return 'live'
-    case 'F':
-    case 'FT':
-    case 'FR':
-      return 'final'
-    default:
-      return 'scheduled'
+  const liveStatuses = ['I', 'IR', 'IT', 'IH', 'IP', 'IS', 'IW', 'ID', 'MA', 'PO', 'Live']
+  const finalStatuses = ['F', 'FT', 'FR', 'FG', 'O', 'C', 'Final']
+  
+  // Handle both status codes and detailed states
+  const status = statusCode?.toUpperCase()
+  
+  if (status?.includes('LIVE') || status?.includes('INNING') || liveStatuses.includes(statusCode)) {
+    return 'live'
   }
+  if (status?.includes('FINAL') || status?.includes('GAME OVER') || finalStatuses.includes(statusCode)) {
+    return 'final'
+  }
+  return 'scheduled'
 }
 
 // Mock data for development/fallback
@@ -461,10 +460,10 @@ export async function fetchGameDetails(gameId: string): Promise<Game | null> {
       awayTeam: game.teams?.away?.name || 'Away Team',
       homeScore: liveData.linescore?.teams?.home?.runs,
       awayScore: liveData.linescore?.teams?.away?.runs,
-      status: mapGameStatus(game.status?.detailedState || ''),
-      inning: liveData.linescore ? 
+      status: mapGameStatus(game.status?.statusCode || game.status?.detailedState || ''),
+      inning: liveData.linescore && (game.status?.statusCode === 'I' || game.status?.detailedState?.includes('Inning')) ? 
         `${liveData.linescore.inningHalf || 'Top'} ${liveData.linescore.currentInning}` : 
-        undefined,
+        game.status?.detailedState?.includes('Final') ? undefined : game.status?.detailedState,
       startTime: game.datetime?.dateTime || '',
       venue: game.venue?.name,
       weather: game.weather ? 
@@ -527,25 +526,31 @@ export async function fetchGameDetails(gameId: string): Promise<Game | null> {
 
 function transformTeamStats(teamData: any, teamName: string): TeamStats {
   const batters = teamData?.players ? Object.values(teamData.players).filter((p: any) => p.stats?.batting) : []
-  const pitchers = teamData?.players ? Object.values(teamData.players).filter((p: any) => p.stats?.pitching) : []
+  // Only show pitchers who have actually pitched (have innings pitched > 0)
+  const pitchers = teamData?.players ? Object.values(teamData.players).filter((p: any) => 
+    p.stats?.pitching && 
+    (parseFloat(p.stats.pitching.inningsPitched) > 0 || p.stats.pitching.numberOfPitches > 0)
+  ) : []
   
   return {
     teamName,
-    battingOrder: batters.map((player: any, index: number) => ({
-      id: player.person?.id?.toString() || '',
-      name: player.person?.fullName || 'Unknown Player',
-      position: player.position?.abbreviation || '',
-      battingOrder: player.battingOrder || index + 1,
-      atBats: player.stats?.batting?.atBats || 0,
-      runs: player.stats?.batting?.runs || 0,
-      hits: player.stats?.batting?.hits || 0,
-      rbi: player.stats?.batting?.rbi || 0,
-      baseOnBalls: player.stats?.batting?.baseOnBalls || 0,
-      strikeOuts: player.stats?.batting?.strikeOuts || 0,
-      avg: player.seasonStats?.batting?.avg || '.000',
-      ops: player.seasonStats?.batting?.ops || '.000',
-      plateAppearances: player.stats?.batting?.plateAppearances || 0
-    })).sort((a, b) => (a.battingOrder || 0) - (b.battingOrder || 0)),
+    battingOrder: batters
+      .filter((player: any) => player.battingOrder || player.stats?.batting?.plateAppearances > 0)
+      .map((player: any, index: number) => ({
+        id: player.person?.id?.toString() || '',
+        name: player.person?.fullName || 'Unknown Player',
+        position: player.position?.abbreviation || '',
+        battingOrder: player.battingOrder || index + 1,
+        atBats: player.stats?.batting?.atBats || 0,
+        runs: player.stats?.batting?.runs || 0,
+        hits: player.stats?.batting?.hits || 0,
+        rbi: player.stats?.batting?.rbi || 0,
+        baseOnBalls: player.stats?.batting?.baseOnBalls || 0,
+        strikeOuts: player.stats?.batting?.strikeOuts || 0,
+        avg: player.seasonStats?.batting?.avg || '.000',
+        ops: player.seasonStats?.batting?.ops || '.000',
+        plateAppearances: player.stats?.batting?.plateAppearances || 0
+      })).sort((a, b) => (a.battingOrder || 0) - (b.battingOrder || 0)),
     
     pitchers: pitchers.map((pitcher: any) => ({
       id: pitcher.person?.id?.toString() || '',
