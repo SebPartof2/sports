@@ -1,5 +1,5 @@
 // NFL API implementation using ESPN API
-import { Game } from './api'
+import { Game, Broadcast } from './api'
 
 export async function fetchNFLGamesByDate(date: string): Promise<Game[]> {
   try {
@@ -281,4 +281,46 @@ function findStatDisplayValue(statistics: any[], statName: string): string | und
   if (!statistics || !Array.isArray(statistics)) return undefined
   const stat = statistics.find((s: any) => s.name === statName || s.abbreviation === statName)
   return stat?.displayValue
+}
+
+// Function to fetch broadcast data for NFL games
+export async function fetchNFLBroadcastsByDate(date: string): Promise<{ [gameId: string]: Broadcast[] }> {
+  try {
+    console.log('Fetching NFL broadcasts for date:', date)
+    
+    // ESPN NFL API endpoint with date
+    const apiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${date.replace(/-/g, '')}`
+    const response = await fetch(apiUrl)
+    
+    if (!response.ok) {
+      console.error(`NFL broadcast fetch failed: ${response.status} ${response.statusText}`)
+      throw new Error(`NFL broadcast fetch failed: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    console.log('NFL Broadcast API response:', data)
+    
+    const events = data.events || []
+    const broadcastData: { [gameId: string]: Broadcast[] } = {}
+    
+    events.forEach((event: any) => {
+      const competition = event.competitions?.[0]
+      if (competition?.broadcasts && competition.broadcasts.length > 0) {
+        broadcastData[event.id] = competition.broadcasts.map((broadcast: any) => ({
+          id: broadcast.type?.id || broadcast.market?.id || Math.random().toString(),
+          name: broadcast.market?.type || broadcast.media?.shortName || 'Unknown',
+          type: broadcast.type?.shortName || broadcast.type || 'TV',
+          language: broadcast.lang || 'en',
+          isNational: broadcast.market?.type === 'National' || !broadcast.market?.id,
+          callSign: broadcast.media?.shortName || broadcast.names?.[0] || '',
+          market: broadcast.market?.type
+        }))
+      }
+    })
+    
+    return broadcastData
+  } catch (error) {
+    console.error('Error fetching NFL broadcast data:', error)
+    return {}
+  }
 }
