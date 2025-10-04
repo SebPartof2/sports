@@ -38,6 +38,25 @@ export const SPORTS_CONFIG: SportConfig[] = [
         }
       }
     ]
+  },
+  {
+    id: 'football',
+    name: 'Football',
+    leagues: [
+      {
+        id: 'nfl',
+        name: 'nfl',
+        displayName: 'National Football League',
+        sport: 'football',
+        apiBaseUrl: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl',
+        logoPath: '/logos/nfl',
+        defaultLogo: '/logos/nfl/NFL.png',
+        colors: {
+          primary: '#013369',
+          secondary: '#D50A0A'
+        }
+      }
+    ]
   }
   // Additional sports will be added here when requested
 ]

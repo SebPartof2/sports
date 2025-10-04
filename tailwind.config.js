@@ -12,6 +12,10 @@ module.exports = {
           blue: '#041E42',
           red: '#BA0C2F',
         },
+        nfl: {
+          blue: '#013369',
+          red: '#D50A0A',
+        },
       },
     },
   },

@@ -19,26 +19,49 @@ export interface Game {
   inning?: string
   startTime: string
   venue?: string
+  venueCity?: string
+  venueState?: string
+  venueCountry?: string
   weather?: string
   temperature?: string
   wind?: string
   homeRecord?: string
   awayRecord?: string
+  // NFL-specific fields
+  period?: number
+  clock?: string
+  // Generic fields for both sports
   probablePitchers?: {
     home?: string
     away?: string
   }
   lineScore?: {
-    innings: Array<{
+    innings?: Array<{
+      home?: number
+      away?: number
+    }>
+    quarters?: Array<{
       home?: number
       away?: number
     }>
     totals: {
-      runs: { home?: number; away?: number }
-      hits: { home?: number; away?: number }
-      errors: { home?: number; away?: number }
+      runs?: { home?: number; away?: number }
+      hits?: { home?: number; away?: number }
+      errors?: { home?: number; away?: number }
+      home?: number
+      away?: number
     }
   }
+  livePlays?: Array<{
+    id?: string
+    period?: number
+    clock?: string
+    down?: number
+    distance?: number
+    yardLine?: string
+    description: string
+    type?: string
+  }>
   lastPlay?: string
   attendance?: number
   boxScore?: {
@@ -55,6 +78,7 @@ export interface Game {
     strikes?: number
     outs?: number
   }
+  league?: string
 }
 
 export interface TeamStats {
@@ -66,6 +90,15 @@ export interface TeamStats {
     hits: number
     errors: number
     leftOnBase: number
+  }
+  // NFL-specific stats (optional)
+  nflStats?: {
+    totalYards: number
+    passingYards: number
+    rushingYards: number
+    turnovers: number
+    penalties: number
+    timeOfPossession: string
   }
 }
 
@@ -103,13 +136,23 @@ export interface PitcherStats {
 }
 
 export interface PlayByPlay {
-  inning: number
-  halfInning: string
-  description: string
-  result?: string
+  // Baseball fields
+  inning?: number
+  halfInning?: string
   balls?: number
   strikes?: number
   outs?: number
+  
+  // NFL fields
+  quarter?: number
+  time?: string
+  down?: number
+  distance?: number
+  yardLine?: string
+  
+  // Common fields
+  description: string
+  result?: string
 }
 
 // Example function to fetch today's games
