@@ -19,26 +19,49 @@ export interface Game {
   inning?: string
   startTime: string
   venue?: string
+  venueCity?: string
+  venueState?: string
+  venueCountry?: string
   weather?: string
   temperature?: string
   wind?: string
   homeRecord?: string
   awayRecord?: string
+  // NFL-specific fields
+  period?: number
+  clock?: string
+  // Generic fields for both sports
   probablePitchers?: {
     home?: string
     away?: string
   }
   lineScore?: {
-    innings: Array<{
+    innings?: Array<{
+      home?: number
+      away?: number
+    }>
+    quarters?: Array<{
       home?: number
       away?: number
     }>
     totals: {
-      runs: { home?: number; away?: number }
-      hits: { home?: number; away?: number }
-      errors: { home?: number; away?: number }
+      runs?: { home?: number; away?: number }
+      hits?: { home?: number; away?: number }
+      errors?: { home?: number; away?: number }
+      home?: number
+      away?: number
     }
   }
+  livePlays?: Array<{
+    id?: string
+    period?: number
+    clock?: string
+    down?: number
+    distance?: number
+    yardLine?: string
+    description: string
+    type?: string
+  }>
   lastPlay?: string
   attendance?: number
   boxScore?: {

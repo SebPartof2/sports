@@ -392,12 +392,20 @@ function OverviewTab({ game, selectedLeague }: { game: Game; selectedLeague: str
               <thead>
                 <tr className="border-b bg-gray-50">
                   <th className="text-left py-3 px-4">Team</th>
-                  {game.lineScore.innings.map((_, i) => (
-                    <th key={i} className="text-center px-3 py-3">{i + 1}</th>
+                  {(game.lineScore?.innings || game.lineScore?.quarters || []).map((_, i) => (
+                    <th key={i} className="text-center px-3 py-3">
+                      {game.league === 'nfl' ? `Q${i + 1}` : (i + 1)}
+                    </th>
                   ))}
-                  <th className="text-center px-3 py-3 border-l font-bold">R</th>
-                  <th className="text-center px-3 py-3">H</th>
-                  <th className="text-center px-3 py-3">E</th>
+                  <th className="text-center px-3 py-3 border-l font-bold">
+                    {game.league === 'nfl' ? 'T' : 'R'}
+                  </th>
+                  {game.league === 'mlb' && (
+                    <>
+                      <th className="text-center px-3 py-3">H</th>
+                      <th className="text-center px-3 py-3">E</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
@@ -413,12 +421,18 @@ function OverviewTab({ game, selectedLeague }: { game: Game; selectedLeague: str
                     />
                     <span>{getTeamAbbreviation(game.awayTeam, selectedLeague)}</span>
                   </td>
-                  {game.lineScore.innings.map((inning, i) => (
-                    <td key={i} className="text-center px-3 py-3">{inning.away ?? '-'}</td>
+                  {(game.lineScore?.innings || game.lineScore?.quarters || []).map((period, i) => (
+                    <td key={i} className="text-center px-3 py-3">{period.away ?? '-'}</td>
                   ))}
-                  <td className="text-center px-3 py-3 border-l font-bold text-mlb-blue">{game.lineScore.totals.runs.away ?? 0}</td>
-                  <td className="text-center px-3 py-3">{game.lineScore.totals.hits.away ?? 0}</td>
-                  <td className="text-center px-3 py-3">{game.lineScore.totals.errors.away ?? 0}</td>
+                  <td className="text-center px-3 py-3 border-l font-bold text-mlb-blue">
+                    {game.league === 'nfl' ? (game.lineScore?.totals?.away ?? game.awayScore ?? 0) : (game.lineScore?.totals?.runs?.away ?? 0)}
+                  </td>
+                  {game.league === 'mlb' && (
+                    <>
+                      <td className="text-center px-3 py-3">{game.lineScore?.totals?.hits?.away ?? 0}</td>
+                      <td className="text-center px-3 py-3">{game.lineScore?.totals?.errors?.away ?? 0}</td>
+                    </>
+                  )}
                 </tr>
                 <tr>
                   <td className="py-3 px-4 font-medium flex items-center space-x-2">
@@ -432,12 +446,18 @@ function OverviewTab({ game, selectedLeague }: { game: Game; selectedLeague: str
                     />
                     <span>{getTeamAbbreviation(game.homeTeam, selectedLeague)}</span>
                   </td>
-                  {game.lineScore.innings.map((inning, i) => (
-                    <td key={i} className="text-center px-3 py-3">{inning.home ?? '-'}</td>
+                  {(game.lineScore?.innings || game.lineScore?.quarters || []).map((period, i) => (
+                    <td key={i} className="text-center px-3 py-3">{period.home ?? '-'}</td>
                   ))}
-                  <td className="text-center px-3 py-3 border-l font-bold text-mlb-blue">{game.lineScore.totals.runs.home ?? 0}</td>
-                  <td className="text-center px-3 py-3">{game.lineScore.totals.hits.home ?? 0}</td>
-                  <td className="text-center px-3 py-3">{game.lineScore.totals.errors.home ?? 0}</td>
+                  <td className="text-center px-3 py-3 border-l font-bold text-mlb-blue">
+                    {game.league === 'nfl' ? (game.lineScore?.totals?.home ?? game.homeScore ?? 0) : (game.lineScore?.totals?.runs?.home ?? 0)}
+                  </td>
+                  {game.league === 'mlb' && (
+                    <>
+                      <td className="text-center px-3 py-3">{game.lineScore?.totals?.hits?.home ?? 0}</td>
+                      <td className="text-center px-3 py-3">{game.lineScore?.totals?.errors?.home ?? 0}</td>
+                    </>
+                  )}
                 </tr>
               </tbody>
             </table>
@@ -658,18 +678,20 @@ export default function Home() {
         console.log('React: Calling MLB API')
         fetchedGames = await fetchGamesByDate(selectedDate)
       } else if (selectedLeague === 'nfl') {
-        console.log('React: Calling NFL API')
+        console.log('React: Calling NFL API for date:', selectedDate)
         const nflApi = await import('../lib/nfl-api')
         fetchedGames = await nflApi.fetchNFLGamesByDate(selectedDate)
-        console.log('React: NFL API returned:', fetchedGames.length, 'games')
+        console.log('React: NFL API returned', fetchedGames.length, 'games')
+        if (fetchedGames.length > 0) {
+          console.log('React: First game venue:', fetchedGames[0]?.venue)
+        }
       } else {
         // For future leagues, show message that they're not implemented yet
         console.log(`${selectedLeague.toUpperCase()} API not implemented yet`)
         fetchedGames = []
       }
       
-      console.log('React: Received games:', fetchedGames)
-      console.log('React: Setting games state to:', fetchedGames)
+      console.log('React: Received games:', fetchedGames.length)
       setGames(fetchedGames)
       setLastUpdated(new Date())
     } catch (error) {
@@ -816,15 +838,15 @@ export default function Home() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center">
               <Calendar className="w-6 h-6 mr-2" />
-              Today's Games - {new Date().toLocaleDateString('en-US', { 
+              {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
-              })}
+              })} Games
             </h2>
             <p className="text-sm text-gray-500">
-              Last updated: {lastUpdated.toLocaleTimeString()}
+              Last updated: Recently
             </p>
           </div>
         </div>

@@ -53,7 +53,7 @@ export default function BoxScore({ game }: BoxScoreProps) {
       )}
 
       {/* Box Score */}
-      {game.lineScore && (
+      {game.lineScore && (game.lineScore.innings || game.lineScore.quarters) && (
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="text-lg font-semibold mb-3">{isNFL ? 'Quarter Scores' : 'Box Score'}</h3>
           <div className="overflow-x-auto">
@@ -61,7 +61,7 @@ export default function BoxScore({ game }: BoxScoreProps) {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-2 px-3">Team</th>
-                  {game.lineScore.innings.map((_, index) => (
+                  {(isNFL ? game.lineScore.quarters : game.lineScore.innings)?.map((_, index) => (
                     <th key={index} className="text-center py-2 px-2 w-8">
                       {isNFL ? (index === 0 ? '1st' : index === 1 ? '2nd' : index === 2 ? '3rd' : index === 3 ? '4th' : `OT${index - 3}`) : (index + 1)}
                     </th>
@@ -90,14 +90,14 @@ export default function BoxScore({ game }: BoxScoreProps) {
                     />
                     <span>{getTeamAbbreviation(game.awayTeam, game.league)}</span>
                   </td>
-                  {game.lineScore.innings.map((inning, index) => (
+                  {(isNFL ? game.lineScore.quarters : game.lineScore.innings)?.map((period, index) => (
                     <td key={index} className="text-center py-2 px-2">
-                      {inning.away ?? '-'}
+                      {period.away ?? '-'}
                     </td>
                   ))}
                   {isNFL ? (
                     <td className="text-center py-2 px-3 font-bold border-l-2">
-                      {game.lineScore.totals.runs.away}
+                      {game.lineScore.totals.away}
                     </td>
                   ) : (
                     <>
@@ -125,14 +125,14 @@ export default function BoxScore({ game }: BoxScoreProps) {
                     />
                     <span>{getTeamAbbreviation(game.homeTeam, game.league)}</span>
                   </td>
-                  {game.lineScore.innings.map((inning, index) => (
+                  {(isNFL ? game.lineScore.quarters : game.lineScore.innings)?.map((period, index) => (
                     <td key={index} className="text-center py-2 px-2">
-                      {inning.home ?? '-'}
+                      {period.home ?? '-'}
                     </td>
                   ))}
                   {isNFL ? (
                     <td className="text-center py-2 px-3 font-bold border-l-2">
-                      {game.lineScore.totals.runs.home}
+                      {game.lineScore.totals.home}
                     </td>
                   ) : (
                     <>

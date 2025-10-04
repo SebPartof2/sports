@@ -1,43 +1,52 @@
-// Test script to check MLB API
-async function testMLBAPI() {
+// Test script to check NFL API venue data
+async function testNFLAPI() {
   try {
-    const today = new Date().toISOString().split('T')[0]
-    console.log(`Testing MLB API for date: ${today}`)
+    // Test with multiple dates to find current games
+    const testDates = ['20251005', '20251006', '20251004'] // Sunday, Monday, Friday
     
-    const response = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${today}`)
-    const data = await response.json()
-    
-    console.log('Schedule response:', JSON.stringify(data, null, 2))
-    
-    if (data.dates && data.dates.length > 0) {
-      const games = data.dates[0].games
-      console.log(`Found ${games.length} games`)
+    for (const testDate of testDates) {
+      console.log(`\nTesting NFL API for date: ${testDate}`)
       
-      for (const game of games) {
-        console.log(`Game ${game.gamePk}: ${game.teams.away.team.name} @ ${game.teams.home.team.name}`)
-        console.log(`Status: ${game.status.detailedState}`)
-        
-        // Test detailed game data
-        try {
-          const gameResponse = await fetch(`https://statsapi.mlb.com/api/v1.1/game/${game.gamePk}/feed/live`)
-          const gameData = await gameResponse.json()
-          console.log(`Detailed data for game ${game.gamePk}:`, {
-            venue: gameData.gameData.venue?.name,
-            weather: gameData.gameData.weather,
-            attendance: gameData.gameData.gameInfo?.attendance,
-            probablePitchers: gameData.gameData.probablePitchers
-          })
-        } catch (err) {
-          console.error(`Error fetching detailed data for game ${game.gamePk}:`, err)
-        }
+      const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=${testDate}&limit=100`)
+      const data = await response.json()
+      
+      console.log('Events found:', data.events?.length || 0)
+      
+      if (data.events && data.events.length > 0) {
+        data.events.forEach((event, index) => {
+          console.log(`\nEvent ${index + 1}:`)
+          console.log('Event ID:', event.id)
+          console.log('Event Name:', event.name)
+          
+          if (event.competitions && event.competitions.length > 0) {
+            const competition = event.competitions[0]
+            console.log('Venue data:', {
+              fullName: competition.venue?.fullName,
+              city: competition.venue?.address?.city,
+              state: competition.venue?.address?.state,
+              country: competition.venue?.address?.country
+            })
+            
+            // Show what the processed game object would look like
+            const competitors = competition.competitors || []
+            const homeCompetitor = competitors.find(c => c.homeAway === 'home')
+            const awayCompetitor = competitors.find(c => c.homeAway === 'away')
+            
+            console.log('Processed game data would be:', {
+              homeTeam: homeCompetitor?.team?.displayName || 'TBD',
+              awayTeam: awayCompetitor?.team?.displayName || 'TBD',
+              venue: competition?.venue?.fullName,
+              venueCity: competition?.venue?.address?.city,
+              venueState: competition?.venue?.address?.state
+            })
+          }
+        })
+        break // Stop after finding games
       }
-    } else {
-      console.log('No games found for today')
     }
   } catch (error) {
-    console.error('Error testing API:', error)
+    console.error('Error testing NFL API:', error)
   }
 }
 
-// Run the test
-testMLBAPI()
+testNFLAPI()
