@@ -118,8 +118,8 @@ function GameDetailModal({
   isOpen: boolean
   onClose: () => void
   loadingDetails: boolean
-  activeTab: 'overview' | 'boxscore' | 'plays'
-  setActiveTab: (tab: 'overview' | 'boxscore' | 'plays') => void
+  activeTab: 'overview' | 'boxscore' | 'plays' | 'broadcasts'
+  setActiveTab: (tab: 'overview' | 'boxscore' | 'plays' | 'broadcasts') => void
   selectedLeague: string
 }) {
   if (!isOpen || !game) return null
@@ -239,6 +239,19 @@ function GameDetailModal({
                 <RefreshCw className="w-3 h-3 inline ml-1 animate-spin" />
               )}
             </button>
+            {selectedLeague === 'mlb' && (
+              <button
+                onClick={() => setActiveTab('broadcasts')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  activeTab === 'broadcasts' 
+                    ? 'bg-white text-mlb-blue shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <Trophy className="w-4 h-4 inline mr-2" />
+                Broadcasts
+              </button>
+            )}
           </div>
         </div>
 
@@ -277,6 +290,10 @@ function GameDetailModal({
                 </div>
               )}
             </div>
+          )}
+
+          {activeTab === 'broadcasts' && selectedLeague === 'mlb' && (
+            <BroadcastsTab game={displayGame} />
           )}
         </div>
 
@@ -517,6 +534,185 @@ function OverviewTab({ game, selectedLeague }: { game: Game; selectedLeague: str
   )
 }
 
+function BroadcastsTab({ game }: { game: Game }) {
+  const [broadcastData, setBroadcastData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchBroadcasts = async () => {
+      if (!game.id) return
+      
+      try {
+        setLoading(true)
+        const mlbApi = await import('../lib/mlb-api')
+        const broadcasts = await mlbApi.fetchMLBBroadcastsByDate(game.startTime.split('T')[0])
+        setBroadcastData(broadcasts[game.id] || [])
+      } catch (error) {
+        console.error('Error fetching broadcasts:', error)
+        setBroadcastData([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBroadcasts()
+  }, [game.id, game.startTime])
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center">
+        <RefreshCw className="w-8 h-8 animate-spin text-mlb-blue mx-auto mb-2" />
+        <p className="text-gray-600">Loading broadcast information...</p>
+      </div>
+    )
+  }
+
+  if (!broadcastData || broadcastData.length === 0) {
+    return (
+      <div className="p-6 text-center text-gray-500">
+        <Trophy className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+        <p>No broadcast information available for this game.</p>
+      </div>
+    )
+  }
+
+  // Remove duplicates and group broadcasts by type
+  const uniqueBroadcasts = broadcastData.reduce((acc: any[], broadcast: any) => {
+    const existing = acc.find(b => b.name === broadcast.name && b.callSign === broadcast.callSign)
+    if (!existing) {
+      acc.push(broadcast)
+    }
+    return acc
+  }, [])
+
+  const tvBroadcasts = uniqueBroadcasts.filter((b: any) => b.type === 'TV')
+  const radioBroadcasts = uniqueBroadcasts.filter((b: any) => b.type === 'AM' || b.type === 'FM')
+
+  const getBroadcastLogo = (broadcast: any) => {
+    const type = broadcast.type === 'TV' ? 'tv' : 'radio'
+    const sanitizedCallSign = broadcast.callSign.toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+    
+    // Try specific logo first, fallback to MLBb.png
+    return `/logos/broadcasts/${type}/${sanitizedCallSign}.png`
+  }
+
+  const getFallbackLogo = () => {
+    return '/logos/broadcasts/generic/MLBb.png'
+  }
+
+  return (
+    <div className="p-6">
+      <div className="space-y-8">
+        {/* TV Broadcasts */}
+        {tvBroadcasts.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold mb-6 flex items-center">
+              <Trophy className="w-6 h-6 mr-3 text-mlb-blue" />
+              Television Broadcasts
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {tvBroadcasts.map((broadcast: any, index: number) => (
+                <div key={index} className="bg-white border border-gray-300 rounded-lg p-4 h-48 relative">
+                  {/* Top row: Broadcaster Name (left) and Region/Language (right) */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="text-sm font-medium text-gray-900 flex-1 truncate pr-2">
+                      {broadcast.name}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600">
+                        {broadcast.isNational ? 'National' : `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, 'mlb')}`}
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1">
+                        {broadcast.language.toUpperCase()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Center Logo Area */}
+                  <div className="flex justify-center items-center flex-1 mb-4">
+                    <div className="w-32 h-24 flex items-center justify-center">
+                      <img 
+                        src={getBroadcastLogo(broadcast)} 
+                        alt={`${broadcast.name} logo`}
+                        className="max-w-full max-h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.src = getFallbackLogo()
+                          e.currentTarget.onerror = () => {
+                            e.currentTarget.style.display = 'none'
+                            const fallback = e.currentTarget.parentElement?.querySelector('.fallback-text') as HTMLElement
+                            if (fallback) fallback.style.display = 'flex'
+                          }
+                        }}
+                      />
+                      <div className="fallback-text w-full h-full flex items-center justify-center text-gray-500 text-xl font-medium" style={{display: 'none'}}>
+                        LOGO
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Radio Broadcasts */}
+        {radioBroadcasts.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold mb-6 flex items-center">
+              <Activity className="w-6 h-6 mr-3 text-mlb-blue" />
+              Radio Broadcasts
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {radioBroadcasts.map((broadcast: any, index: number) => (
+                <div key={index} className="bg-white border border-gray-300 rounded-lg p-4 h-48 relative">
+                  {/* Top row: Broadcaster Name (left) and Region/Language (right) */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="text-sm font-medium text-gray-900 flex-1 truncate pr-2">
+                      {broadcast.name}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600">
+                        {broadcast.isNational ? 'National' : `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, 'mlb')}`}
+                      </div>
+                      <div className="text-sm text-gray-700 mt-1">
+                        {broadcast.language.toUpperCase()}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Center Logo Area */}
+                  <div className="flex justify-center items-center flex-1 mb-4">
+                    <div className="w-32 h-24 flex items-center justify-center">
+                      <img 
+                        src={getBroadcastLogo(broadcast)} 
+                        alt={`${broadcast.name} logo`}
+                        className="max-w-full max-h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.src = getFallbackLogo()
+                          e.currentTarget.onerror = () => {
+                            e.currentTarget.style.display = 'none'
+                            const fallback = e.currentTarget.parentElement?.querySelector('.fallback-text') as HTMLElement
+                            if (fallback) fallback.style.display = 'flex'
+                          }
+                        }}
+                      />
+                      <div className="fallback-text w-full h-full flex items-center justify-center text-gray-500 text-xl font-medium" style={{display: 'none'}}>
+                        LOGO
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function LivePlaysTab({ game }: { game: Game }) {
   const isNFL = game.league === 'nfl'
   
@@ -601,7 +797,7 @@ export default function Home() {
   const [detailedGame, setDetailedGame] = useState<Game | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [loadingDetails, setLoadingDetails] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'boxscore' | 'plays'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'boxscore' | 'plays' | 'broadcasts'>('overview')
   const [selectedDate, setSelectedDate] = useState<string>(() => {
     return getLocalDateString()
   })

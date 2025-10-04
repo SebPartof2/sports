@@ -55,6 +55,7 @@ export interface Game {
     strikes?: number
     outs?: number
   }
+  broadcasts?: Broadcast[]
 }
 
 export interface TeamStats {
@@ -110,6 +111,43 @@ export interface PlayByPlay {
   balls?: number
   strikes?: number
   outs?: number
+}
+
+export interface Broadcast {
+  id: number
+  name: string
+  type: string
+  language: string
+  isNational: boolean
+  callSign: string
+  videoResolution?: {
+    code: string
+    resolutionShort: string
+    resolutionFull: string
+  }
+  availability: {
+    availabilityId: number
+    availabilityCode: string
+    availabilityText: string
+  }
+  mediaState: {
+    mediaStateId: number
+    mediaStateCode: string
+    mediaStateText: string
+  }
+  broadcastDate: string
+  mediaId: string
+  colorSpace?: {
+    code: string
+    colorSpaceFull: string
+  }
+  gameDateBroadcastGuid: string
+  homeAway: string
+  freeGame: boolean
+  availableForStreaming: boolean
+  postGameShow: boolean
+  mvpdAuthRequired: boolean
+  freeGameStatus: boolean
 }
 
 // Example function to fetch today's games
@@ -606,4 +644,56 @@ function transformPlays(plays: any[]): PlayByPlay[] {
     strikes: play.count?.strikes,
     outs: play.count?.outs
   }))
+}
+
+// Function to fetch broadcast data for MLB games
+export async function fetchMLBBroadcastsByDate(date: string): Promise<{ [gameId: string]: Broadcast[] }> {
+  try {
+    const cacheBuster = Date.now()
+    console.log('Fetching MLB broadcasts for date:', date)
+    
+    const response = await fetch(`https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=${date}&hydrate=broadcasts&_=${cacheBuster}`)
+    
+    if (!response.ok) {
+      console.error(`Broadcast fetch failed: ${response.status} ${response.statusText}`)
+      throw new Error(`Broadcast fetch failed: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    console.log('Broadcast API response:', data)
+    
+    const games = data.dates?.[0]?.games || []
+    const broadcastData: { [gameId: string]: Broadcast[] } = {}
+    
+    games.forEach((game: any) => {
+      if (game.broadcasts && game.broadcasts.length > 0) {
+        broadcastData[game.gamePk.toString()] = game.broadcasts.map((broadcast: any) => ({
+          id: broadcast.id,
+          name: broadcast.name,
+          type: broadcast.type,
+          language: broadcast.language,
+          isNational: broadcast.isNational,
+          callSign: broadcast.callSign,
+          videoResolution: broadcast.videoResolution,
+          availability: broadcast.availability,
+          mediaState: broadcast.mediaState,
+          broadcastDate: broadcast.broadcastDate,
+          mediaId: broadcast.mediaId,
+          colorSpace: broadcast.colorSpace,
+          gameDateBroadcastGuid: broadcast.gameDateBroadcastGuid,
+          homeAway: broadcast.homeAway,
+          freeGame: broadcast.freeGame,
+          availableForStreaming: broadcast.availableForStreaming,
+          postGameShow: broadcast.postGameShow,
+          mvpdAuthRequired: broadcast.mvpdAuthRequired,
+          freeGameStatus: broadcast.freeGameStatus
+        }))
+      }
+    })
+    
+    return broadcastData
+  } catch (error) {
+    console.error('Error fetching broadcast data:', error)
+    return {}
+  }
 }

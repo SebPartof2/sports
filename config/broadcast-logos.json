@@ -1,0 +1,146 @@
+{
+  "broadcastLogos": {
+    "description": "Configuration for broadcast network and station logos",
+    "version": "1.0.0",
+    "lastUpdated": "2025-10-04",
+    "logoSpecs": {
+      "format": "PNG",
+      "size": "64x64px minimum",
+      "background": "transparent",
+      "aspectRatio": "1:1 (square) preferred"
+    },
+    "directories": {
+      "tv": "/public/logos/broadcasts/tv/",
+      "radio": "/public/logos/broadcasts/radio/",
+      "generic": "/public/logos/broadcasts/generic/"
+    },
+    "networks": {
+      "television": [
+        {
+          "name": "FOX",
+          "callSigns": ["FOX"],
+          "filename": "fox.png",
+          "priority": "high",
+          "national": true
+        },
+        {
+          "name": "TBS",
+          "callSigns": ["TBS"],
+          "filename": "tbs.png", 
+          "priority": "high",
+          "national": true
+        },
+        {
+          "name": "ESPN",
+          "callSigns": ["ESPN"],
+          "filename": "espn.png",
+          "priority": "high", 
+          "national": true
+        },
+        {
+          "name": "HBO Max",
+          "callSigns": ["HBO Max", "HBOMAX"],
+          "filename": "hbo-max.png",
+          "priority": "medium",
+          "national": true
+        },
+        {
+          "name": "FS1",
+          "callSigns": ["FS1", "FOX Sports 1"],
+          "filename": "fs1.png",
+          "priority": "high",
+          "national": true
+        },
+        {
+          "name": "MLB Network",
+          "callSigns": ["MLB Network", "MLBN"],
+          "filename": "mlb-network.png",
+          "priority": "medium",
+          "national": true
+        }
+      ],
+      "radio": [
+        {
+          "name": "ESPN Radio",
+          "callSigns": ["ESPN", "ESPN Radio"],
+          "filename": "espn-radio.png",
+          "priority": "high",
+          "national": true
+        },
+        {
+          "name": "WFAN",
+          "callSigns": ["WFAN", "WFAN 660/101.9 FM"],
+          "filename": "wfan.png",
+          "priority": "medium",
+          "national": false,
+          "market": "New York"
+        },
+        {
+          "name": "SN590",
+          "callSigns": ["SN590"],
+          "filename": "sn590.png",
+          "priority": "medium", 
+          "national": false,
+          "market": "Toronto"
+        },
+        {
+          "name": "670 The Score",
+          "callSigns": ["WSCR", "670 The Score"],
+          "filename": "670-the-score.png",
+          "priority": "medium",
+          "national": false,
+          "market": "Chicago"
+        },
+        {
+          "name": "WTMJ 620",
+          "callSigns": ["WTMJ", "WTMJ 620"],
+          "filename": "wtmj-620.png",
+          "priority": "medium",
+          "national": false,
+          "market": "Milwaukee"
+        },
+        {
+          "name": "Dodgers Radio AM570",
+          "callSigns": ["KLAC AM570", "AM570"],
+          "filename": "klac-am570.png",
+          "priority": "medium",
+          "national": false,
+          "market": "Los Angeles"
+        },
+        {
+          "name": "94 WIP",
+          "callSigns": ["WIP", "94 WIP"],
+          "filename": "94-wip.png",
+          "priority": "medium",
+          "national": false,
+          "market": "Philadelphia"
+        },
+        {
+          "name": "Seattle Sports",
+          "callSigns": ["KIRO 710AM", "Seattle Sports"],
+          "filename": "kiro-710.png",
+          "priority": "medium",
+          "national": false,
+          "market": "Seattle"
+        }
+      ]
+    },
+    "fallbacks": {
+      "tv": {
+        "filename": "tv-placeholder.png",
+        "description": "Generic TV broadcast icon"
+      },
+      "radio": {
+        "filename": "radio-placeholder.png", 
+        "description": "Generic radio broadcast icon"
+      }
+    },
+    "implementation": {
+      "component": "BroadcastsTab",
+      "deduplication": "Remove duplicates by name and callSign",
+      "grouping": "Separate TV and Radio broadcasts",
+      "errorHandling": "Show fallback text if logo fails to load",
+      "layout": "Responsive grid with large tiles"
+    }
+  }
+}
