@@ -102,13 +102,13 @@ export default function BoxScore({ game }: BoxScoreProps) {
                   ) : (
                     <>
                       <td className="text-center py-2 px-3 font-bold border-l-2">
-                        {game.lineScore.totals.runs.away}
+                        {game.lineScore.totals.runs?.away ?? '-'}
                       </td>
                       <td className="text-center py-2 px-3">
-                        {game.lineScore.totals.hits.away}
+                        {game.lineScore.totals.hits?.away ?? '-'}
                       </td>
                       <td className="text-center py-2 px-3">
-                        {game.lineScore.totals.errors.away}
+                        {game.lineScore.totals.errors?.away ?? '-'}
                       </td>
                     </>
                   )}
@@ -137,13 +137,13 @@ export default function BoxScore({ game }: BoxScoreProps) {
                   ) : (
                     <>
                       <td className="text-center py-2 px-3 font-bold border-l-2">
-                        {game.lineScore.totals.runs.home}
+                        {game.lineScore.totals.runs?.home ?? '-'}
                       </td>
                       <td className="text-center py-2 px-3">
-                        {game.lineScore.totals.hits.home}
+                        {game.lineScore.totals.hits?.home ?? '-'}
                       </td>
                       <td className="text-center py-2 px-3">
-                        {game.lineScore.totals.errors.home}
+                        {game.lineScore.totals.errors?.home ?? '-'}
                       </td>
                     </>
                   )}
