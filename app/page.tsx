@@ -612,19 +612,19 @@ function BroadcastsTab({ game }: { game: Game }) {
               <Trophy className="w-6 h-6 mr-3 text-mlb-blue" />
               Television Broadcasts
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {tvBroadcasts.map((broadcast: any, index: number) => (
-                <div key={index} className="bg-white border border-gray-300 rounded-lg p-4 h-48 relative">
+                <div key={index} className="bg-white border border-gray-300 rounded-lg p-3 h-40 sm:h-44 relative">
                   {/* Top row: Broadcaster Name (left) and Region/Language (right) */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="text-sm font-medium text-gray-900 flex-1 truncate pr-2">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900 flex-1 truncate pr-1">
                       {broadcast.name}
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-xs text-gray-600">
                         {broadcast.isNational ? 'National' : `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, 'mlb')}`}
                       </div>
-                      <div className="text-sm text-gray-700 mt-1">
+                      <div className="text-xs text-gray-700 mt-1">
                         {broadcast.language.toUpperCase()}
                       </div>
                     </div>
@@ -632,7 +632,7 @@ function BroadcastsTab({ game }: { game: Game }) {
 
                   {/* Center Logo Area */}
                   <div className="flex justify-center items-center flex-1 mb-4">
-                    <div className="w-32 h-24 flex items-center justify-center">
+                    <div className="w-20 h-16 sm:w-24 sm:h-18 md:w-28 md:h-20 lg:w-32 lg:h-24 flex items-center justify-center">
                       <img 
                         src={getBroadcastLogo(broadcast)} 
                         alt={`${broadcast.name} logo`}
@@ -646,7 +646,7 @@ function BroadcastsTab({ game }: { game: Game }) {
                           }
                         }}
                       />
-                      <div className="fallback-text w-full h-full flex items-center justify-center text-gray-500 text-xl font-medium" style={{display: 'none'}}>
+                      <div className="fallback-text w-full h-full flex items-center justify-center text-gray-500 text-sm sm:text-base md:text-lg lg:text-xl font-medium" style={{display: 'none'}}>
                         LOGO
                       </div>
                     </div>
@@ -664,19 +664,19 @@ function BroadcastsTab({ game }: { game: Game }) {
               <Activity className="w-6 h-6 mr-3 text-mlb-blue" />
               Radio Broadcasts
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {radioBroadcasts.map((broadcast: any, index: number) => (
-                <div key={index} className="bg-white border border-gray-300 rounded-lg p-4 h-48 relative">
+                <div key={index} className="bg-white border border-gray-300 rounded-lg p-3 h-40 sm:h-44 relative">
                   {/* Top row: Broadcaster Name (left) and Region/Language (right) */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="text-sm font-medium text-gray-900 flex-1 truncate pr-2">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="text-xs sm:text-sm font-medium text-gray-900 flex-1 truncate pr-1">
                       {broadcast.name}
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-xs text-gray-600">
                         {broadcast.isNational ? 'National' : `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, 'mlb')}`}
                       </div>
-                      <div className="text-sm text-gray-700 mt-1">
+                      <div className="text-xs text-gray-700 mt-1">
                         {broadcast.language.toUpperCase()}
                       </div>
                     </div>
@@ -684,7 +684,7 @@ function BroadcastsTab({ game }: { game: Game }) {
 
                   {/* Center Logo Area */}
                   <div className="flex justify-center items-center flex-1 mb-4">
-                    <div className="w-32 h-24 flex items-center justify-center">
+                    <div className="w-20 h-16 sm:w-24 sm:h-18 md:w-28 md:h-20 lg:w-32 lg:h-24 flex items-center justify-center">
                       <img 
                         src={getBroadcastLogo(broadcast)} 
                         alt={`${broadcast.name} logo`}
@@ -698,7 +698,7 @@ function BroadcastsTab({ game }: { game: Game }) {
                           }
                         }}
                       />
-                      <div className="fallback-text w-full h-full flex items-center justify-center text-gray-500 text-xl font-medium" style={{display: 'none'}}>
+                      <div className="fallback-text w-full h-full flex items-center justify-center text-gray-500 text-sm sm:text-base md:text-lg lg:text-xl font-medium" style={{display: 'none'}}>
                         LOGO
                       </div>
                     </div>
