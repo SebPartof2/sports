@@ -239,7 +239,7 @@ function GameDetailModal({
                 <RefreshCw className="w-3 h-3 inline ml-1 animate-spin" />
               )}
             </button>
-            {selectedLeague === 'mlb' && (
+            {(selectedLeague === 'mlb' || selectedLeague === 'nfl') && (
               <button
                 onClick={() => setActiveTab('broadcasts')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -292,8 +292,8 @@ function GameDetailModal({
             </div>
           )}
 
-          {activeTab === 'broadcasts' && selectedLeague === 'mlb' && (
-            <BroadcastsTab game={displayGame} />
+          {activeTab === 'broadcasts' && (selectedLeague === 'mlb' || selectedLeague === 'nfl') && (
+            <BroadcastsTab game={displayGame} league={selectedLeague} />
           )}
         </div>
 
@@ -534,7 +534,7 @@ function OverviewTab({ game, selectedLeague }: { game: Game; selectedLeague: str
   )
 }
 
-function BroadcastsTab({ game }: { game: Game }) {
+function BroadcastsTab({ game, league }: { game: Game; league: string }) {
   const [broadcastData, setBroadcastData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
@@ -544,9 +544,16 @@ function BroadcastsTab({ game }: { game: Game }) {
       
       try {
         setLoading(true)
-        const mlbApi = await import('../lib/mlb-api')
-        const broadcasts = await mlbApi.fetchMLBBroadcastsByDate(game.startTime.split('T')[0])
-        setBroadcastData(broadcasts[game.id] || [])
+        
+        if (league === 'mlb') {
+          const mlbApi = await import('../lib/mlb-api')
+          const broadcasts = await mlbApi.fetchMLBBroadcastsByDate(game.startTime.split('T')[0])
+          setBroadcastData(broadcasts[game.id] || [])
+        } else if (league === 'nfl') {
+          const nflApi = await import('../lib/nfl-api')
+          const broadcasts = await nflApi.fetchNFLBroadcastsByDate(game.startTime.split('T')[0])
+          setBroadcastData(broadcasts[game.id] || [])
+        }
       } catch (error) {
         console.error('Error fetching broadcasts:', error)
         setBroadcastData([])
@@ -556,7 +563,7 @@ function BroadcastsTab({ game }: { game: Game }) {
     }
 
     fetchBroadcasts()
-  }, [game.id, game.startTime])
+  }, [game.id, game.startTime, league])
 
   if (loading) {
     return (
@@ -590,15 +597,19 @@ function BroadcastsTab({ game }: { game: Game }) {
 
   const getBroadcastLogo = (broadcast: any) => {
     const type = broadcast.type === 'TV' ? 'tv' : 'radio'
-    const sanitizedCallSign = broadcast.callSign.toLowerCase()
+    const sanitizedCallSign = (broadcast.callSign || broadcast.name || '').toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '')
     
-    // Try specific logo first, fallback to MLBb.png
+    // Try specific logo first
     return `/logos/broadcasts/${type}/${sanitizedCallSign}.png`
   }
 
   const getFallbackLogo = () => {
+    // Use league-specific fallback
+    if (league === 'nfl') {
+      return '/logos/broadcasts/generic/NFLb.png'
+    }
     return '/logos/broadcasts/generic/MLBb.png'
   }
 
@@ -609,7 +620,7 @@ function BroadcastsTab({ game }: { game: Game }) {
         {tvBroadcasts.length > 0 && (
           <div>
             <h3 className="text-xl font-bold mb-6 flex items-center">
-              <Trophy className="w-6 h-6 mr-3 text-mlb-blue" />
+              <Trophy className={`w-6 h-6 mr-3 ${league === 'nfl' ? 'text-blue-600' : 'text-mlb-blue'}`} />
               Television Broadcasts
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -622,10 +633,10 @@ function BroadcastsTab({ game }: { game: Game }) {
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-gray-600">
-                        {broadcast.isNational ? 'National' : `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, 'mlb')}`}
+                        {broadcast.isNational ? 'National' : broadcast.market || `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, league)}`}
                       </div>
                       <div className="text-sm text-gray-700 mt-1">
-                        {broadcast.language.toUpperCase()}
+                        {broadcast.language ? broadcast.language.toUpperCase() : 'EN'}
                       </div>
                     </div>
                   </div>
@@ -661,7 +672,7 @@ function BroadcastsTab({ game }: { game: Game }) {
         {radioBroadcasts.length > 0 && (
           <div>
             <h3 className="text-xl font-bold mb-6 flex items-center">
-              <Activity className="w-6 h-6 mr-3 text-mlb-blue" />
+              <Activity className={`w-6 h-6 mr-3 ${league === 'nfl' ? 'text-blue-600' : 'text-mlb-blue'}`} />
               Radio Broadcasts
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -674,10 +685,10 @@ function BroadcastsTab({ game }: { game: Game }) {
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-gray-600">
-                        {broadcast.isNational ? 'National' : `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, 'mlb')}`}
+                        {broadcast.isNational ? 'National' : broadcast.market || `Local - ${getTeamAbbreviation(broadcast.homeAway === 'home' ? game.homeTeam : game.awayTeam, league)}`}
                       </div>
                       <div className="text-sm text-gray-700 mt-1">
-                        {broadcast.language.toUpperCase()}
+                        {broadcast.language ? broadcast.language.toUpperCase() : 'EN'}
                       </div>
                     </div>
                   </div>

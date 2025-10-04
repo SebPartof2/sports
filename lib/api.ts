@@ -79,6 +79,50 @@ export interface Game {
     outs?: number
   }
   league?: string
+  broadcasts?: Broadcast[]
+}
+
+export interface Broadcast {
+  id?: number | string
+  name: string
+  type: string  // 'TV', 'AM', 'FM', etc.
+  language?: string
+  isNational?: boolean
+  callSign?: string
+  market?: string
+  // NFL-specific fields from ESPN
+  media?: {
+    shortName?: string
+  }
+  // MLB-specific fields
+  videoResolution?: {
+    code: string
+    resolutionShort: string
+    resolutionFull: string
+  }
+  availability?: {
+    availabilityId: number
+    availabilityCode: string
+    availabilityText: string
+  }
+  mediaState?: {
+    mediaStateId: number
+    mediaStateCode: string
+    mediaStateText: string
+  }
+  broadcastDate?: string
+  mediaId?: string
+  colorSpace?: {
+    code: string
+    colorSpaceFull: string
+  }
+  gameDateBroadcastGuid?: string
+  homeAway?: string
+  freeGame?: boolean
+  availableForStreaming?: boolean
+  postGameShow?: boolean
+  mvpdAuthRequired?: boolean
+  freeGameStatus?: boolean
 }
 
 export interface TeamStats {

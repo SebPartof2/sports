@@ -100,7 +100,8 @@ export const BROADCAST_LOGOS: BroadcastLogoConfig[] = [
 export const FALLBACK_LOGOS = {
   tv: '/logos/broadcasts/generic/MLBb.png',
   radio: '/logos/broadcasts/generic/MLBb.png',
-  mlb: '/logos/broadcasts/generic/MLBb.png'
+  mlb: '/logos/broadcasts/generic/MLBb.png',
+  nfl: '/logos/broadcasts/generic/NFLb.png'
 }
 
 export function getBroadcastLogo(callSign: string, type: 'tv' | 'radio', sport: string = 'mlb'): string {
@@ -112,9 +113,11 @@ export function getBroadcastLogo(callSign: string, type: 'tv' | 'radio', sport: 
     return config.logoPath
   }
 
-  // For MLB broadcasts, use MLBb.png as fallback
+  // For MLB/NFL broadcasts, use sport-specific fallback
   if (sport === 'mlb') {
     return FALLBACK_LOGOS.mlb
+  } else if (sport === 'nfl') {
+    return FALLBACK_LOGOS.nfl
   }
 
   // Generate fallback path based on call sign for other sports
